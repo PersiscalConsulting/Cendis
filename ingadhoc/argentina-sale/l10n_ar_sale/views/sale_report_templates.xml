@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <template id="report_saleorder_raw" inherit_id="sale.report_saleorder_raw">
+    <!-- TODO Verificar post V17 <template id="report_saleorder_raw" inherit_id="sale.report_saleorder_raw">
         <t t-call="sale.report_saleorder_document" position="attributes">
             <attribute name="t-call">#{ doc._get_name_sale_report('sale.report_saleorder_document') }</attribute>
         </t>
-    </template>
+    </template>-->
 
     <template id="report_saleorder_pro_forma" inherit_id="sale.report_saleorder_pro_forma">
         <t t-call="sale.report_saleorder_document" position="attributes">
