@@ -21,6 +21,7 @@
     "data": [
         'security/security.xml',
         'security/ir.model.access.csv',
+        'data/l10n_latam.document.type.csv',
         'wizards/account_payment_group_invoice_wizard_view.xml',
         'wizards/transfer_create_view.xml',
         'views/account_payment_view.xml',
