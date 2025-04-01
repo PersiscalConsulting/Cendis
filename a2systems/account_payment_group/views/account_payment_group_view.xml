@@ -102,7 +102,7 @@
                 </div>
                 <group>
                     <group>
-                        <field name="company_id" options="{'no_create': True, 'no_open': True}" groups="base.group_multi_company" invisible="context.get('pop_up')"/>
+                        <field name="company_id" options="{'no_create': True, 'no_open': True}" invisible="context.get('pop_up')"/>
                         <field name="currency_id" invisible="1"/>
 			<field name="partner_id" context="{'default_is_company': True, 'default_supplier': partner_type == 'supplier', 'default_customer': partner_type == 'customer'}" 
 				invisible="context.get('pop_up')"/>
