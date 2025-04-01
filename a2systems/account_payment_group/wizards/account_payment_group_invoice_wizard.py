@@ -25,7 +25,7 @@ class AccountPaymentGroupInvoiceWizard(models.TransientModel):
     )
     commercial_partner_id = fields.Many2one(
         'res.partner',
-        related="payment_id.partner_id.commercial_partner_id"
+        related="payment_group_id.partner_id.commercial_partner_id"
     )
 
     payment_group_id = fields.Many2one(
