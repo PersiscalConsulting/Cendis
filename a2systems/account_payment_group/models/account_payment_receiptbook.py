@@ -84,6 +84,11 @@ class AccountPaymentReceiptbook(models.Model):
         help="If set an email will be sent to the customer when the related"
         " account.payment.group has been posted.",
     )
+    document_type_id = fields.Many2one(
+        'l10n_latam.document.type',
+        'Document Type',
+        required=True,
+    )#TODO agregado para migracion, posible revision de impacto pre v17
 
 
     def write(self, vals):
