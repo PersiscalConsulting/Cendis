@@ -30,8 +30,9 @@
         'l10n_ar',
         'l10n_ar_account_reports',
         'l10n_ar_ux',
-        'l10n_ar_account_withholding',
-        'account_payment_pro_receiptbook',
+        #'l10n_ar_account_withholding',#TODO: revisar post v17
+        #'account_payment_pro_receiptbook',#TODO: revisar post v17
+        'account_withholding',#TODO: revisar post v17
     ],
     'data': [
         'data/inflation_adjustment_index.xml',
