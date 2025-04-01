@@ -33,7 +33,7 @@
             <separator/>
             <field name="payment_methods"/>
             <field name="partner_id" />
-            <field name="company_id" groups="base.group_multi_company" />
+            <field name="company_id" />
             <!-- <filter string="Payable" domain="[('payment_type','=','outbound')]"/> -->
             <!-- <filter string="Receivable" domain="[('payment_type','=','inbound')]"/> -->
             <separator/>
@@ -46,7 +46,7 @@
             <filter name="partner_id" string="Partner" domain="[]" context="{'group_by': 'partner_id'}"/>
             <filter name="state" string="State" domain="[]" context="{'group_by': 'state'}"/>
             <filter name="currency_id" string="Currency" domain="[]" context="{'group_by': 'currency_id'}" groups="base.group_multi_currency"/>
-            <filter name="company_id" string="Company" domain="[]" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+            <filter name="company_id" string="Company" domain="[]" context="{'group_by': 'company_id'}" />
         </search>
     </field>
 </record>
