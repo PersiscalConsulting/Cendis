@@ -16,7 +16,7 @@
             <field name="payment_methods"/>
             <field name="payments_amount" sum="Total" string="Monto"/>
             <field name="state"/>
-            <field name="company_id" groups="base.group_multi_company"/>
+            <field name="company_id" />
             <field name="currency_id" invisible="1"/>
             <field name="partner_type" invisible="1"/>
         </tree>
