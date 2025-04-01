@@ -118,7 +118,7 @@ result = withholdable_base_amount * 0.10
         que son base de este impuesto (por ej. en ganancias de mismo regimen y que aplica impuesto)
         * previous_withholdings_domain: dominio para hacer search del impuesto aplicado en el mes
         """
-        to_date = fields.Date.from_string(payment.date) or datetime.date.today()
+        to_date = fields.Date.from_string(payment.payment_date) or datetime.date.today()
         if self.withholding_accumulated_payments == 'month':
             from_relative_delta = relativedelta(day=1)
         elif self.withholding_accumulated_payments == 'year':
