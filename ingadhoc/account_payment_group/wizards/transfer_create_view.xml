@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_transfer_create_wizard" model="ir.ui.view">
+            <field name="name">create.transfer.wizard.form</field>
+            <field name="model">create.transfer.wizard</field>
+            <field name="arch" type="xml">
+		<form string="Create Transfer">
+		    <group>
+        	            <field name="journal_id" readonly="1"/>
+			    <field name="destination_journal_id" domain="[('type','in',['cash','bank'])]"/>
+			    <field name="amount" />
+	    	    </group>
+                    <footer>
+                        <button string='Confirm' name="confirm" type="object" class="btn-primary"/>
+                        <button string="Cancel" class="btn-default" special="cancel"/>
+                    </footer>
+               </form>
+            </field>
+        </record>
+
+    </data>
+</odoo>

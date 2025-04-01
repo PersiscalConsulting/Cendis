@@ -1,0 +1,233 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* account_debt_report
+# 
+# Translators:
+# Juan José Scarafía <scarafia.juanjose@gmail.com>, 2024
+# Rocio Vega, 2024
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 17.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-08-05 12:43+0000\n"
+"PO-Revision-Date: 2024-01-15 12:48+0000\n"
+"Last-Translator: Rocio Vega, 2024\n"
+"Language-Team: Spanish (https://app.transifex.com/adhoc/teams/46451/es/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Language: es\n"
+"Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;\n"
+
+#. module: account_debt_report
+#: model:mail.template,body_html:account_debt_report.email_template_debt_detail
+msgid ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"                <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
+"                    Dear\n"
+"                    <t t-if=\"object.parent_id\">\n"
+"                        <t t-out=\"object.name or ''\"></t>\n"
+"                        (<t t-out=\"object.parent_id.name or ''\"></t>),\n"
+"                    </t>\n"
+"                    <t t-else=\"\">\n"
+"                        <t t-out=\"object.name or ''\"></t>,\n"
+"                    </t>\n"
+"                    <br><br>\n"
+"                    Please find attached your debt detail from <t t-out=\"object.company_id.name or ''\"></t>.\n"
+"                    <br><br>\n"
+"                    Do not hesitate to contact us if you have any questions.\n"
+"                </p>\n"
+"            </div>\n"
+"        "
+msgstr ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
+"       Estimado/a\n"
+"       <t t-if=\"object.parent_id\">\n"
+"           <t t-out=\"object.name or ''\"></t>\n"
+"           (<t t-out=\"object.parent_id.name or ''\"></t>),\n"
+"       </t>\n"
+"       <t t-else=\"\">\n"
+"           <t t-out=\"object.name or ''\"></t>,\n"
+"       </t>\n"
+"       <br /><br />\n"
+"       Aquí tiene su detalle de deuda de <t t-out=\"object.company_id.name or ''\"></t>\n"
+"       <br/><br/>\n"
+"       No dude en contactarnos si tiene alguna pregunta.\n"
+"    </p>\n"
+"</div>\n"
+"        "
+
+#. module: account_debt_report
+#: model:ir.actions.report,name:account_debt_report.account_debt_report
+msgid "Account Debt Report"
+msgstr "Informe de Deuda de Cuenta"
+
+#. module: account_debt_report
+#: model:ir.model,name:account_debt_report.model_account_debt_report_wizard
+msgid "Account Debt Report Wizard"
+msgstr "Asistente de informe de deuda de cuenta"
+
+#. module: account_debt_report
+#: model:ir.model.fields,field_description:account_debt_report.field_account_debt_report_wizard__result_selection
+msgid "Account Type's"
+msgstr "Tipos de Cuentas"
+
+#. module: account_debt_report
+#: model:ir.model.fields,help:account_debt_report.field_account_debt_report_wizard__secondary_currency
+msgid "Add columns for secondary currency?"
+msgstr "Agregar columnas para moneda secundaria?"
+
+#. module: account_debt_report
+#: model_terms:ir.ui.view,arch_db:account_debt_report.account_debt_report_wizard_form
+msgid "Cancel"
+msgstr "Cancelar"
+
+#. module: account_debt_report
+#: model:ir.model.fields,field_description:account_debt_report.field_account_debt_report_wizard__company_id
+#: model_terms:ir.ui.view,arch_db:account_debt_report.account_debt_report_wizard_form
+msgid "Company"
+msgstr "Empresa"
+
+#. module: account_debt_report
+#: model_terms:ir.ui.view,arch_db:account_debt_report.account_debt_report_wizard_form
+msgid "Confirm"
+msgstr "Confirmar"
+
+#. module: account_debt_report
+#: model:ir.model,name:account_debt_report.model_res_partner
+msgid "Contact"
+msgstr "Contacto"
+
+#. module: account_debt_report
+#: model:ir.model.fields,field_description:account_debt_report.field_account_debt_report_wizard__create_uid
+msgid "Created by"
+msgstr "Creado por"
+
+#. module: account_debt_report
+#: model:ir.model.fields,field_description:account_debt_report.field_account_debt_report_wizard__create_date
+msgid "Created on"
+msgstr "Creado el"
+
+#. module: account_debt_report
+#: model:mail.template,name:account_debt_report.email_template_debt_detail
+msgid "Debt Detail Mail"
+msgstr "Correo de detalle de deuda"
+
+#. module: account_debt_report
+#: model:mail.template,subject:account_debt_report.email_template_debt_detail
+msgid "Debt Detail {{ object.company_id.name }}"
+msgstr "Detalle de Deuda {{ object.company_id.name }}"
+
+#. module: account_debt_report
+#: model:ir.actions.act_window,name:account_debt_report.action_account_debt_report_wizard
+msgid "Debt Report"
+msgstr "Detalle de Deuda"
+
+#. module: account_debt_report
+#: model_terms:ir.ui.view,arch_db:account_debt_report.account_debt_report_wizard_form
+msgid "Detallar desde"
+msgstr ""
+
+#. module: account_debt_report
+#: model_terms:ir.ui.view,arch_db:account_debt_report.account_debt_report_wizard_form
+msgid "Detallar hasta"
+msgstr ""
+
+#. module: account_debt_report
+#: model:ir.model.fields,field_description:account_debt_report.field_account_debt_report_wizard__display_name
+msgid "Display Name"
+msgstr "Nombre a Mostrar"
+
+#. module: account_debt_report
+#: model:ir.model.fields,field_description:account_debt_report.field_account_debt_report_wizard__from_date
+msgid "From"
+msgstr "Desde"
+
+#. module: account_debt_report
+#: model:ir.model.fields,field_description:account_debt_report.field_account_debt_report_wizard__historical_full
+msgid "Historical Full"
+msgstr "Histórico"
+
+#. module: account_debt_report
+#: model:ir.model.fields,field_description:account_debt_report.field_account_debt_report_wizard__id
+msgid "ID"
+msgstr ""
+
+#. module: account_debt_report
+#. odoo-python
+#: code:addons/account_debt_report/models/res_partner.py:0
+#, python-format
+msgid "INITIAL BALANCE"
+msgstr "SALDO INICIAL"
+
+#. module: account_debt_report
+#: model:ir.model.fields,help:account_debt_report.field_account_debt_report_wizard__historical_full
+msgid ""
+"If true, then it will show all partner history. If not, only unreconciled "
+"items will be shown."
+msgstr ""
+"Si marca esta opción entonces se mostrará todo el historial. Caso contrario "
+"solo items no conciliados se mostrarán"
+
+#. module: account_debt_report
+#: model:ir.model.fields,help:account_debt_report.field_account_debt_report_wizard__company_id
+msgid ""
+"If you don't select a company, debt for all companies will be exported."
+msgstr ""
+"Si no selecciona una compañía se mostará la deuda de todas las compañías "
+"disponibles."
+
+#. module: account_debt_report
+#: model:ir.model.fields,field_description:account_debt_report.field_account_debt_report_wizard__write_uid
+msgid "Last Updated by"
+msgstr "Última actualización por"
+
+#. module: account_debt_report
+#: model:ir.model.fields,field_description:account_debt_report.field_account_debt_report_wizard__write_date
+msgid "Last Updated on"
+msgstr "Última actualización en"
+
+#. module: account_debt_report
+#: model:ir.model.fields.selection,name:account_debt_report.selection__account_debt_report_wizard__result_selection__payable
+msgid "Payable Accounts"
+msgstr "Cuentas a Pagar"
+
+#. module: account_debt_report
+#: model:ir.model.fields.selection,name:account_debt_report.selection__account_debt_report_wizard__result_selection__receivable
+msgid "Receivable Accounts"
+msgstr "Cuentas a Cobrar"
+
+#. module: account_debt_report
+#: model:ir.model.fields.selection,name:account_debt_report.selection__account_debt_report_wizard__result_selection__all
+msgid "Receivable and Payable Accounts"
+msgstr "Cuentas a Cobrar y Pagar"
+
+#. module: account_debt_report
+#: model:ir.model.fields,field_description:account_debt_report.field_account_debt_report_wizard__secondary_currency
+msgid "Secondary Currency"
+msgstr "Moneda Secundaria"
+
+#. module: account_debt_report
+#. odoo-python
+#: code:addons/account_debt_report/wizard/account_debt_report_wizard.py:0
+#: model_terms:ir.ui.view,arch_db:account_debt_report.account_debt_report_wizard_form
+#, python-format
+msgid "Send by Email"
+msgstr "Enviar por Email"
+
+#. module: account_debt_report
+#: model:ir.model.fields,field_description:account_debt_report.field_account_debt_report_wizard__show_invoice_detail
+msgid "Show Invoice Detail"
+msgstr "Mostrar detalle de Facturas"
+
+#. module: account_debt_report
+#: model:ir.model.fields,field_description:account_debt_report.field_account_debt_report_wizard__to_date
+msgid "To"
+msgstr "Hasta"
+
+#. module: account_debt_report
+#: model_terms:ir.ui.view,arch_db:account_debt_report.account_debt_report_wizard_form
+msgid "or"
+msgstr "o"
