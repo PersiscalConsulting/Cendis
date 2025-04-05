@@ -227,10 +227,6 @@ class AccountPaymentGroup(models.Model):
         string='Lineas de Pago',
         ondelete='cascade',
         copy=False,
-        readonly=True,
-        states={
-            'draft': [('readonly', False)],
-            'confirmed': [('readonly', False)]},
         auto_join=True,
     )
     account_internal_type = fields.Char(
