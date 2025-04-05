@@ -34,7 +34,7 @@
     <field name="name">account.payment.tree</field>
     <field name="model">account.payment</field>
     <field name="arch" type="xml">
-        <tree edit="1" create="1">
+        <tree>
         <!-- <tree decoration-info="state=='draft'" decoration-muted="state=='reconciled'"> -->
             <!-- <field name="payment_date"/> -->
             <field name="name"/>
