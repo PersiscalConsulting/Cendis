@@ -145,7 +145,7 @@
         </field>
     </record>
 
-    <!-- disable create on paymen tree view -->
+    <!-- disable create on paymen tree view 
     <record id="view_account_payment_tree" model="ir.ui.view">
         <field name="name">account.payment.transfer.tree</field>
         <field name="model">account.payment</field>
@@ -155,7 +155,7 @@
                 <attribute name="create">false</attribute>
             </tree>
         </field>
-    </record>
+    </record> -->
 
 <!-- Transfers views -->
 
