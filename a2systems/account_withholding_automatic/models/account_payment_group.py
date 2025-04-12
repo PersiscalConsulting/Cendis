@@ -4,6 +4,8 @@
 ##############################################################################
 from odoo import models, api, fields, _
 from odoo.exceptions import ValidationError
+import logging
+_logger = logging.getLogger(__name__)
 
 
 class AccountPaymentGroup(models.Model):
@@ -43,6 +45,8 @@ class AccountPaymentGroup(models.Model):
             # caso viene in_invoice o out_invoice y en search de tax filtrar
             # por impuestos de venta y compra (y no los nuestros de pagos
             # y cobros)
+            _logger.warning('**** Tax whithholding: {0}'.format(self.env['account.tax'].with_context(type=None).search([('type_tax_use', '=', rec.partner_type),('company_id', '=', rec.company_id.id),])))
+            
             self.env['account.tax'].with_context(type=None).search([
                 ('type_tax_use', '=', rec.partner_type),
                 ('company_id', '=', rec.company_id.id),
