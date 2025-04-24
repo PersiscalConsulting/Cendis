@@ -1,10 +1,16 @@
 from odoo import models, api, _
 from odoo.exceptions import ValidationError
+import logging
+_logger = logging.getLogger(__name__)
 
 class AccountJournal(models.Model):
     _inherit = "account.journal"
 
     def open_payments_action(self, payment_type, mode='form'):
+        _logger.debug('**************************')
+        _logger.debug('open_payments_action')
+        _logger.debug('payment_type: %s', payment_type)
+        _logger.debug('**************************')
         if payment_type == 'transfer':
     #        ctx = self._context.copy()
     #        ctx.update({
