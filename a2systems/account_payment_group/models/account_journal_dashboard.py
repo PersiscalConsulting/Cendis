@@ -7,10 +7,10 @@ class AccountJournal(models.Model):
     _inherit = "account.journal"
 
     def open_payments_action(self, payment_type=False, mode='list'):
-        _logger.debug('**************************')
-        _logger.debug('open_payments_action')
-        _logger.debug('payment_type: %s', payment_type)
-        _logger.debug('**************************')
+        _logger.warning('**************************')
+        _logger.warning('open_payments_action')
+        _logger.warning('payment_type: %s', payment_type)
+        _logger.warning('**************************')
         if payment_type == 'transfer':
     #        ctx = self._context.copy()
     #        ctx.update({
