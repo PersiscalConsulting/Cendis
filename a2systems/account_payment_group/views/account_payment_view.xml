@@ -107,7 +107,7 @@
             <button name="action_post" position="attributes">
                 <!-- idem cancel -->
                 <!-- <attribute name="invisible">1</attribute> -->
-                <attribute name="groups">base.group_no_one</attribute>
+                <!--<attribute name="groups">base.group_no_one</attribute>-->
                 <attribute name="confirm">IMPORTANTE: La validación de la línea de pago se debe hacer desde el recibo. La validación manual de una línea de pago se usa solo para correcciones y usos avanzados. Seguro desea continuar?</attribute>
             </button>
 
