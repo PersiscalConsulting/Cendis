@@ -326,7 +326,7 @@ class AccountPayment(models.Model):
             vals['payment_type'] = vals['payment_type_copy']
             del vals['payment_type_copy']
         if 'destination_journal_id' in vals:
-            if 'is_internal_transfer' in vals and vals['is_internal_transfer']:
+            if 'is_internal_transfer' in vals and not vals['is_internal_transfer']:
                 # we are creating a transfer, so we need to set the
                 # destination journal to the one selected in the wizard
                 # and not the one selected in the payment group
