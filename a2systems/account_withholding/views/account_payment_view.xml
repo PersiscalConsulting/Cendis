@@ -12,8 +12,8 @@
 				    domain="[('type_tax_use', '=', partner_type), ('company_id', '=', company_id)]" 
 				    required = "payment_method_code == 'withholding'"
                     readonly = "state != 'draft'"/>
-                        <field name="withholding_number" string="Nro de retencion"/>
-                        <field name="withholding_base_amount" required = "payment_method_code == 'withholding'" string="Monto base de retencion"/>
+                        <field name="withholding_number" string="Nro de retencion" readonly = "state != 'draft'"/>
+                        <field name="withholding_base_amount" required = "payment_method_code == 'withholding'" string="Monto base de retencion" readonly = "state != 'draft'"/>
                     </group>
                 </div>
             </field>

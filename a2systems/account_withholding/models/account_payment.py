@@ -14,15 +14,11 @@ class AccountPayment(models.Model):
         string='Impuesto de retencion',
     )
     withholding_number = fields.Char(
-        readonly=True,
-        states={'draft': [('readonly', False)]},
         help="If you don't set a number we will add a number automatically "
         "from a sequence that should be configured on the Withholding Tax"
     )
     withholding_base_amount = fields.Monetary(
-        string='Monto base de retencion',
-        readonly=True,
-        states={'draft': [('readonly', False)]},
+        string='Monto base de retencion'
     )
     communication = fields.Text('Notas')
 
