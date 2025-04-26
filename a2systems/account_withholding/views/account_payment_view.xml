@@ -10,7 +10,8 @@
                     <group string="Datos de retencion" name="withholding_data" invisible = "payment_method_code != 'withholding'">
 			    <field name="tax_withholding_id"  options="{'no_create': True, 'no_open': True}" string="Impuesto de retencion"
 				    domain="[('type_tax_use', '=', partner_type), ('company_id', '=', company_id)]" 
-				    required = "payment_method_code == 'withholding'"/>
+				    required = "payment_method_code == 'withholding'"
+                    readonly = "state != 'draft'"/>
                         <field name="withholding_number" string="Nro de retencion"/>
                         <field name="withholding_base_amount" required = "payment_method_code == 'withholding'" string="Monto base de retencion"/>
                     </group>

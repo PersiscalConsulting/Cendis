@@ -12,8 +12,6 @@ class AccountPayment(models.Model):
     tax_withholding_id = fields.Many2one(
         'account.tax',
         string='Impuesto de retencion',
-        readonly=True,
-        states={'draft': [('readonly', False)]},
     )
     withholding_number = fields.Char(
         readonly=True,
