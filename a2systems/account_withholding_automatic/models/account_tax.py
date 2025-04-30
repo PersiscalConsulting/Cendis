@@ -5,6 +5,8 @@ from ast import literal_eval
 from odoo.tools.safe_eval import safe_eval as eval
 from dateutil.relativedelta import relativedelta
 import datetime
+import logging
+_logger = logging.getLogger(__name__)
 
 
 class AccountTax(models.Model):
@@ -160,6 +162,7 @@ result = withholdable_base_amount * 0.10
             computed_withholding_amount = max(0, (
                 period_withholding_amount - previous_withholding_amount))
 
+            _logger.warning('********* computed_withholding_amount: {0}'.format(computed_withholding_amount))
             if not computed_withholding_amount:
                 # if on refresh no more withholding, we delete if it exists
                 if payment_withholding:
@@ -376,4 +379,5 @@ result = withholdable_base_amount * 0.10
             'automatic': True,
             'comment': comment,
         }
+        _logger.warning('********* result:{0}'.format(result))
         return result
