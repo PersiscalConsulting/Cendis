@@ -148,6 +148,7 @@ result = withholdable_base_amount * 0.10
                 if payment_group.search(domain):
                     raise ValidationError(tax.withholding_user_error_message)
             vals = tax.get_withholding_vals(payment_group)
+            _logger.warning('********* vals: {0}'.format(vals))
 
             # we set computed_withholding_amount, hacemos round porque
             # si no puede pasarse un valor con mas decimales del que se ve
