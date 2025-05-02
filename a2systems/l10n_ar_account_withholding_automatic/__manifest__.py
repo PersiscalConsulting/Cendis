@@ -41,7 +41,7 @@
     'depends': [
         'account_withholding_automatic',
         'l10n_ar',
-        'l10n_ar_percepciones',
+        #'l10n_ar_percepciones',
     ],
     'external_dependencies': {
     },
