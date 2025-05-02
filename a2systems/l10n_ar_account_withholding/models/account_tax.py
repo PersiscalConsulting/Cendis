@@ -36,7 +36,7 @@ class AccountTax(models.Model):
             previos_payment_groups_domain,
             previos_payments_domain)
 
-    def get_withholding_vals(self, payment_group):
+    def get_withholding_vals(self, payment_group, force_withholding_amount_type=None):
         commercial_partner = payment_group.commercial_partner_id
 
         force_withholding_amount_type = None
