@@ -32,7 +32,7 @@
         <t t-out="object.company_id.street or ''" data-oe-t-inline="true" contenteditable="false"></t><br/>
         <t t-out="object.company_id.street2 or ''" data-oe-t-inline="true" contenteditable="false"></t><br/>
         <t t-out="object.company_id.zip or ''" data-oe-t-inline="true" contenteditable="false"></t> <t t-out="object.company_id.city or ''" data-oe-t-inline="true" contenteditable="false"></t><br/>
-        <t t-out="object.company_id.state_id.name or ''" data-oe-t-inline="true" contenteditable="false"></t> - <t t-out="object.company_id.country_id.name or ''" data-oe-t-inline="true" contenteditable="fals">        </span>
+        <t t-out="object.company_id.state_id.name or ''" data-oe-t-inline="true" contenteditable="false"></t> - <t t-out="object.company_id.country_id.name or ''" data-oe-t-inline="true" contenteditable="fals"></t></span>
         <div style="margin-top: 0px; margin-right: 0px; margin-bottom: 0px; margin-left: 0px; padding: 0px;">
             <t t-out="object.company_id.phone or ''" data-oe-t-inline="true" contenteditable="false"></t>
         </div>
