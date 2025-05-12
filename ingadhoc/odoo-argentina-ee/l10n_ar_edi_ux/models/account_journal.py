@@ -1,0 +1,71 @@
+from odoo import models, fields, _, api
+from odoo.exceptions import UserError
+from odoo.tools import format_date
+import datetime
+
+
+class AccountJournal(models.Model):
+    _inherit = "account.journal"
+
+    # TO DO: DELETE THE check_add_debit_button in V18
+    check_add_debit_button = fields.Boolean(
+    string="Agregar botón de débito", store=True, readonly=False,
+    help="Si marca esta opción podrá debitar los cheques con un botón desde los mismos. Para realizar el asiento de débito se buscará un método de pago saliente del tipo Manual con nombre Manual, si no se encuentra uno se utilizará el primero que sea del tipo Manual (sin importar el nombre). Se utilizará luego la cuenta configurada en dicho método de ese método de pago.")
+
+    def l10n_ar_check_afip_doc_types(self):
+        """ This method shows the valid document types for each Webservice. """
+        self.ensure_one()
+        connection = self.company_id._l10n_ar_get_connection(self.l10n_ar_afip_ws)
+        client, auth = connection._get_client()
+        if self.l10n_ar_afip_ws == 'wsfe':
+            response = client.service.FEParamGetTiposCbte(auth)
+        elif self.l10n_ar_afip_ws == 'wsfex':
+            response = client.service.FEXGetPARAM_Cbte_Tipo(auth)
+        elif self.l10n_ar_afip_ws == 'wsbfe':
+            response = client.service.BFEGetPARAM_Tipo_Cbte(auth)
+        else:
+            raise UserError(_('"Get Document Types" is not implemented for webservice %s') % self.l10n_ar_afip_ws)
+
+        msg = self._format_afip_doc_types(self.l10n_ar_afip_ws, response)
+        msg = (_("Authorized Document Clases on AFIP:\n%s" % msg))
+        raise UserError(msg)
+
+    def _format_afip_doc_types(self, ws, response):
+        """ Given the response and the Webservice used, returns a more legible message to be shown to the users. """
+        events = False
+        if ws == 'wsfe':
+            if response['Errors']:
+                raise UserError(response['Errors'])
+            elif response['Events']:
+                events = str(response['Events'])
+            result_key = 'ResultGet'
+            voucher_key = 'CbteTipo'
+            id_key = 'Id'
+            name_key = 'Desc'
+            date_from_key = 'FchDesde'
+            date_to_key = 'FchHasta'
+        elif ws == 'wsfex' or ws == 'wsbfe':
+            error_key = 'FEXErr' if ws == 'wsfex' else 'BFEErr'
+            events_key = 'FEXEvents' if ws == 'wsfex' else 'BFEEvents'
+            if response[error_key]['ErrMsg'] != 'OK':
+                raise UserError(response[error_key]['ErrMsg'])
+            elif response[events_key]['EventMsg'] != 'Ok':
+                events = str(response[events_key]['EventMsg'])
+            result_key = 'FEXResultGet' if ws == 'wsfex' else 'BFEResultGet'
+            voucher_key = 'ClsFEXResponse_Cbte_Tipo' if ws == 'wsfex' else 'ClsBFEResponse_Tipo_Cbte'
+            id_key = 'Cbte_Id'
+            name_key = 'Cbte_Ds'
+            date_from_key = 'Cbte_vig_desde'
+            date_to_key = 'Cbte_vig_hasta'
+
+        msg = ""
+        for document in response[result_key][voucher_key]:
+            date_from = format_date(self.env, datetime.datetime.strptime(document[date_from_key], '%Y%m%d'), date_format='dd/MM/Y')
+            line = " - [" + str(document[id_key]) + "] " + document[name_key] + " Vigente desde: " + date_from
+            if document[date_to_key] != 'NULL':
+                date_to = format_date(self.env, datetime.datetime.strptime(document[date_to_key], '%Y%m%d'), date_format='dd/MM/Y')
+                line += " hasta: " + date_to
+            msg += line + "\n"
+        if events:
+            msg += "\n\nAdicional AFIP devuelve este evento: " + events
+        return msg
