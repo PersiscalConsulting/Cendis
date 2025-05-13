@@ -8,7 +8,8 @@
     "application": False,
     'installable': True,
     "depends": [
-        "account"
+        "account",
+        "l10n_latam_invoice_document",
     ],
     "data": [
         'security/security.xml',
