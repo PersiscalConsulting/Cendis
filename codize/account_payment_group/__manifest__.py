@@ -19,6 +19,7 @@
         'views/account_payment_group_view.xml',
         'views/account_payment_receiptbook_view.xml',
         'report/report_payment_group.xml',
+        'data/l10n_latam.document.type.csv',
         'data/mail_template_data.xml',
     ],
     "demo": [],
