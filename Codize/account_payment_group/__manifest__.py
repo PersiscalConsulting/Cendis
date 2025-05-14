@@ -8,7 +8,8 @@
     "application": False,
     'installable': True,
     "depends": [
-        "account"
+        "account",
+        "l10n_latam_invoice_document",
     ],
     "data": [
         'security/security.xml',
@@ -20,6 +21,7 @@
         'views/account_payment_receiptbook_view.xml',
         'report/report_payment_group.xml',
         'data/mail_template_data.xml',
+        'data/l10n_latam.document.type.csv',
     ],
     "demo": [],
 }

@@ -21,7 +21,7 @@
         'security/security.xml',
         'views/account_payment_receipt_group.xml',
         'views/account_payment.xml',
-        'data/l10n_latam.document.type.csv',
+        #'data/l10n_latam.document.type.csv',
     ],
     'installable': True,
     'auto_install': False,
