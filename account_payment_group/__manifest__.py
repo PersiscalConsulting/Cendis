@@ -15,7 +15,7 @@
     },
     "depends": [
         "account_ux",
-        "l10n_latam_account_sequence",
+        #"l10n_latam_account_sequence",
     ],
     "data": [
         'security/security.xml',
