@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings_view.form</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="currency_rate_live.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+
+            <setting id="update_exchange_rates" position="attributes">
+                <attribute name="company_dependent">1</attribute>
+            </setting>
+
+            <xpath expr="//button[@name='update_currency_rates_manually']/.." position="after">
+                <div invisible="not module_currency_rate_live or currency_provider != 'afip'" groups="base.group_no_one">
+                    <div class="row">
+                        <label for="rate_perc" class="col-md-3 o_light_label"/>
+                        <field name="rate_perc"/>
+                   </div>
+                    <div class="row">
+                        <label for="rate_surcharge" class="col-md-3 o_light_label"/>
+                        <field name="rate_surcharge"/>
+                   </div>
+                </div>
+            </xpath>
+
+            <button name="update_currency_rates_manually" position="attributes">
+                <attribute name="invisible">currency_interval_unit != 'manually'</attribute>
+            </button>
+
+            <!-- Do not let the user to unistall the module -->
+            <field name="module_currency_rate_live" position="attributes">
+                    <attribute name="readonly">1</attribute>
+             </field>
+
+        </field>
+    </record>
+
+</odoo>
