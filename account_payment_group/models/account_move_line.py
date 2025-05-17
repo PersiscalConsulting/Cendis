@@ -2,7 +2,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from odoo import models, fields, api
-# from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import UserError, ValidationError
 
 
 class AccountMoveLine(models.Model):
@@ -17,10 +17,8 @@ class AccountMoveLine(models.Model):
         'payment_group_id',
         string="Payment Groups",
         readonly=True,
-        copy=False,
     )
 
-    @api.depends_context('payment_group_id')
     def _compute_payment_group_matched_amount(self):
         """
         Reciviendo un payment_group_id por contexto, decimos en ese payment
@@ -28,14 +26,25 @@ class AccountMoveLine(models.Model):
         """
         payment_group_id = self._context.get('payment_group_id')
         if not payment_group_id:
-            self.payment_group_matched_amount = 0.0
+            self.payment_group_matched_amount = 0
             return False
-        payments = self.env['account.payment.group'].browse(payment_group_id).payment_ids
-        payment_lines = payments.mapped('line_ids').filtered(lambda x: x.account_type in ['asset_receivable', 'liability_payable'])
+        payments = self.env['account.payment.group'].browse(
+            payment_group_id).payment_ids
+        # payment_move_lines = payments.mapped('move_line_ids')
+        payment_move_lines = payments.mapped('invoice_line_ids')
+
         for rec in self:
-            debit_move_amount = sum(payment_lines.mapped('matched_debit_ids').filtered(lambda x: x.debit_move_id == rec).mapped('amount'))
-            credit_move_amount = sum(payment_lines.mapped('matched_credit_ids').filtered(lambda x: x.credit_move_id == rec).mapped('amount'))
-            rec.payment_group_matched_amount = debit_move_amount - credit_move_amount
+            matched_amount = 0.0
+            reconciles = self.env['account.partial.reconcile'].search([
+                ('credit_move_id', 'in', payment_move_lines.ids),
+                ('debit_move_id', '=', rec.id)])
+            matched_amount += sum(reconciles.mapped('amount'))
+
+            reconciles = self.env['account.partial.reconcile'].search([
+                ('debit_move_id', 'in', payment_move_lines.ids),
+                ('credit_move_id', '=', rec.id)])
+            matched_amount -= sum(reconciles.mapped('amount'))
+            rec.payment_group_matched_amount = matched_amount
 
     payment_group_matched_amount = fields.Monetary(
         compute='_compute_payment_group_matched_amount',
