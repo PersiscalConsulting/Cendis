@@ -27,6 +27,7 @@ def migrate(cr, version):
     """)
 
     duplicates = cr.fetchall()
+    _logger.info("**** Found %s duplicated account.move names", len(duplicates))
 
     for name, journal_id, move_ids in duplicates:
         move_ids = list(move_ids)
@@ -40,4 +41,4 @@ def migrate(cr, version):
                 WHERE id = %s
             """, (new_name, move_id))
 
-        print(f"Renamed {len(move_ids)} moves for name='{name}' and journal_id={journal_id}")
+        _logger.warning(f"Renamed {len(move_ids)} moves for name='{name}' and journal_id={journal_id}")
