@@ -1,5 +1,5 @@
 import logging
-from odoo.upgrade import util
+from openupgradelib import openupgrade
 
 _logger = logging.getLogger(__name__)
 
