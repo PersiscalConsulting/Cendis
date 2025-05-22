@@ -5,3 +5,4 @@ from . import account_journal
 from . import res_company
 from . import res_config_setting
 from . import account_write_off_type
+from . import l10n_latam_document_type
