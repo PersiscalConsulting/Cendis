@@ -20,6 +20,7 @@
     "data": [
         'security/payment_security.xml',
         'security/ir.model.access.csv',
+        'data/l10n_latam.document.type.csv',
         'wizards/account_payment_invoice_wizard_view.xml',
         'views/account_payment_view.xml',
         'views/account_move.xml',
