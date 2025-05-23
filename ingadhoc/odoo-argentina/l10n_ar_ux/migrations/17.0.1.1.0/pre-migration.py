@@ -23,7 +23,6 @@ def migrate(cr, version):
         FROM account_move
         WHERE state = 'posted'
           AND name != '/'
-          AND payment_group_id IS NULL
           AND (l10n_latam_document_type_id IS NULL OR move_type NOT IN ('in_invoice', 'in_refund', 'in_receipt'))
         GROUP BY name, journal_id
         HAVING COUNT(*) > 1
