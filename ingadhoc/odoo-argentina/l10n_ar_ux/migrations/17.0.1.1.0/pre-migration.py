@@ -10,6 +10,7 @@ def migrate(cr, version):
     
     util.merge_module(cr, "account_payment_group", "account_payment_pro", update_dependers=True)
     util.merge_module(cr, "account_withholding", "l10n_ar_account_withholding", update_dependers=True)
+    util.merge_module(cr, "account_withholding_automatic", "l10n_ar_withholding_ux", update_dependers=True)
     _logger.info("Cambiamos nombre tecnico de modulo account_payment_group por account_payment_pro 2")
 
     """
