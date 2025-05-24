@@ -1,10 +1,14 @@
 import logging
 from odoo.upgrade import util
+from odoo.tools.sql import index_exists, drop_index
 
 _logger = logging.getLogger(__name__)
 
 
 def migrate(cr, version):
+    _logger.info("Eliminamos index para que sean recreados en la migracion a Odoo 17")
+    if index_exists(cr, "account_move_unique_name"):
+        drop_index(cr, "account_move_unique_name", "account_move")
     _logger.info("Cambiamos nombre tecnico de modulo account_payment_group por account_payment_pro 1")
     env = util.env(cr)
     
