@@ -19,6 +19,16 @@ def migrate(cr, version):
                     ) AS delta_moves
                     WHERE account_move.id = delta_moves.id
         """)
+    cr.execute("""
+                CREATE UNIQUE INDEX account_move_unique_name
+                                 ON account_move(name, journal_id)
+                              WHERE (state = 'posted' AND name != '/'
+                                AND (l10n_latam_document_type_id IS NULL OR move_type NOT IN ('in_invoice', 'in_refund', 'in_receipt')));
+                CREATE UNIQUE INDEX account_move_unique_name_latam
+                                 ON account_move(name, commercial_partner_id, l10n_latam_document_type_id, company_id)
+                              WHERE (state = 'posted' AND name != '/'
+                                AND (l10n_latam_document_type_id IS NOT NULL AND move_type IN ('in_invoice', 'in_refund', 'in_receipt')));
+    """)
     _logger.info("Cambiamos nombre tecnico de modulo account_payment_group por account_payment_pro 1")
     env = util.env(cr)
     util.rename_module(cr, "account_payment_group", "account_payment_pro")
