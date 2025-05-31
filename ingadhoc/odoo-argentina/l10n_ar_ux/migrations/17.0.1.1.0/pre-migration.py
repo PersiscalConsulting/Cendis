@@ -6,7 +6,13 @@ _logger = logging.getLogger(__name__)
 
 
 def migrate(cr, version):
+    env = util.env(cr)
     _logger.info("Eliminamos index para que sean recreados en la migracion a Odoo 17")
+    env['ir.model.data'].search([('module', '=', 'account_payment_group'), ('name', '=', 'account_see_payment_menu')])
+
+    cr.execute("CREATE TABLE IF EXISTS account_payment_bkp")
+    cr.execute("CREATE TABLE account_payment_bkp AS TABLE account_payment")
+
     cr.execute("DROP INDEX IF EXISTS account_move_unique_name")
     cr.execute("DROP INDEX IF EXISTS account_move_unique_name_latam")
     cr.execute("""UPDATE account_move
@@ -35,7 +41,6 @@ def migrate(cr, version):
     # if index_exists(cr, "account_move_unique_name"):
     #     drop_index(cr, "account_move_unique_name", "account_move")
     _logger.info("Cambiamos nombre tecnico de modulo account_payment_group por account_payment_pro 1")
-    env = util.env(cr)
 
     util.merge_module(cr, "account_payment_group", "account_payment_pro", update_dependers=True)
     util.merge_module(cr, "account_withholding", "l10n_ar_account_withholding", update_dependers=True)
