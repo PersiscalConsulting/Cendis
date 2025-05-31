@@ -10,7 +10,7 @@ def migrate(cr, version):
     _logger.info("Eliminamos index para que sean recreados en la migracion a Odoo 17")
     env['ir.model.data'].search([('module', '=', 'account_payment_group'), ('name', '=', 'account_see_payment_menu')])
 
-    cr.execute("CREATE TABLE IF EXISTS account_payment_bkp")
+    cr.execute("DROP TABLE IF EXISTS account_payment_bkp")
     cr.execute("CREATE TABLE account_payment_bkp AS TABLE account_payment")
 
     cr.execute("DROP INDEX IF EXISTS account_move_unique_name")
