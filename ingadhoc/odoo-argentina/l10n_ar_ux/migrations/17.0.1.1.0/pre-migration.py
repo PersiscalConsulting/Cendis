@@ -8,7 +8,7 @@ _logger = logging.getLogger(__name__)
 def migrate(cr, version):
     env = util.env(cr)
     _logger.info("Eliminamos index para que sean recreados en la migracion a Odoo 17")
-    env['ir.model.data'].search([('module', '=', 'account_payment_group'), ('name', '=', 'account_see_payment_menu')])
+    env['ir.model.data'].search([('module', '=', 'account_payment_group'), ('name', '=', 'account_see_payment_menu')]).noupdate=False
 
     cr.execute("DROP TABLE IF EXISTS account_payment_bkp")
     cr.execute("CREATE TABLE account_payment_bkp AS TABLE account_payment")
