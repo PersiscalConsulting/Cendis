@@ -12,7 +12,7 @@ def migrate(cr, version):
     cr.execute("""UPDATE account_move
                     SET name = CONCAT(account_move.name, ' (', subquery.rn, ')')
                     FROM (SELECT * FROM (
-                        SELECTid,name,journal_id,
+                        SELECT id,name,journal_id,
                         ROW_NUMBER() OVER (PARTITION BY name, journal_id ORDER BY name) AS row_num
                         FROM account_move
                         WHERE state = 'posted AND name != '/'
