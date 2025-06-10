@@ -1,6 +1,6 @@
 {
     'name': 'Custom report account',
-    'version': "16.0.1.1.0",
+    'version': "18.0.1.1.0",
     'author': 'Persiscal',
     'website': 'www.Persiscal.com',
     'license': 'AGPL-3',
