@@ -6,10 +6,10 @@
     'license': 'AGPL-3',
     'depends': [
         'account',
-        'l10n_ar_ux'# por la clase receiptbooks y demas
+        #'l10n_ar_ux'# por la clase receiptbooks y demas
     ],
     'data': [
-        'views/report_payment.xml'
+        #'views/report_payment.xml'
     ],
     'qweb': [],
     'demo': [
