@@ -1,2 +1,2 @@
 odoo_upgrade @ git+https://github.com/odoo/upgrade-util@master
-pyafipws @ git@github.com:ingadhoc/pyafipws.git@odoo18
+git+https://github.com/ingadhoc/pyafipws.git@odoo18

@@ -78,44 +78,16 @@ def migrate(cr, version):
     util.remove_view(cr,'account_payment_group.view_account_payment_tree')
     util.remove_view(cr,'l10n_ar_account_withholding.view_partner_form')
 
-
+    # l10n_ar_withholding, l10n_ar_sale
 
     util.merge_module(cr, "account_payment_group", "account_payment_pro_receiptbook", update_dependers=True)
-    util.merge_module(cr, "l10n_ar_account_withholding", "l10n_ar_withholding", update_dependers=True)
+    util.merge_module(cr, "l10n_ar_account_withholding", "l10n_ar_withholding")
 
     env['ir.model.data'].search([('module', '=', 'account_payment_pro_receiptbook'), ('name', '=', 'model_account_payment_group')]).noupdate=True
     util.merge_module(cr, "account_withholding", "l10n_ar_tax", update_dependers=True)
     util.merge_module(cr, "account_withholding_automatic", "l10n_ar_tax_backward_compatibility", update_dependers=True)
     util.force_install_module(cr, "l10n_ar_payment_bundle")
 
+    cr.execute("UPDATE l10n_latam_check SET payment_date = write_date where payment_date IS NULL")
 
-    # """
-    # Fix duplicated account.move name/journal_id combinations to allow applying
-    # the new unique index during the migration to Odoo 17.
-    # """
-    # cr.execute("""
-    #     SELECT name, journal_id, array_agg(id) AS move_ids
-    #     FROM account_move
-    #     WHERE state = 'posted'
-    #       AND name != '/'
-    #       AND (l10n_latam_document_type_id IS NULL OR move_type NOT IN ('in_invoice', 'in_refund', 'in_receipt'))
-    #     GROUP BY name, journal_id
-    #     HAVING COUNT(*) > 1
-    # """)
-
-    # duplicates = cr.fetchall()
-    # _logger.info("**** Found %s duplicated account.move names", len(duplicates))
-
-    # for name, journal_id, move_ids in duplicates:
-    #     move_ids = list(move_ids)
-    #     move_ids.sort()
-
-    #     for i, move_id in enumerate(move_ids):
-    #         new_name = f"{name}_{i+1}"
-    #         cr.execute("""
-    #             UPDATE account_move
-    #             SET name = %s
-    #             WHERE id = %s
-    #         """, (new_name, move_id))
-
-    #     _logger.warning(f"Renamed {len(move_ids)} moves for name='{name}' and journal_id={journal_id}")
+    util.force_install_module(cr, "l10n_ar_tax_backward_compatibility")
