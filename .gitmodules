@@ -30,3 +30,8 @@
 	path = OCA/server-ux
 	url = https://github.com/OCA/server-ux.git
 	branch = 16.0
+
+[submodule "Outsource-Argentina/odoo-mod-purchase-requisitions-ext"]
+	path = Outsource-Argentina/odoo-mod-purchase-requisitions-ext
+	url = git@github.com:Outsource-Argentina/odoo-mod-purchase-requisitions-ext.git
+	branch = main
