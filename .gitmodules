@@ -35,3 +35,8 @@
 	path = Outsource-Argentina/odoo-mod-purchase-requisitions-ext
 	url = git@github.com:Outsource-Argentina/odoo-mod-purchase-requisitions-ext.git
 	branch = main
+
+[submodule "Outsource-Argentina/odoo-mod-campo-propietario"]
+	path = Outsource-Argentina/odoo-mod-campo-propietario
+	url = git@github.com:Outsource-Argentina/odoo-mod-campo-propietario.git
+	branch = main
