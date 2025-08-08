@@ -46,3 +46,8 @@
 	path = Outsource-Argentina/odoo-mod-parche-stock_picking_grouping
 	url = git@github.com:Outsource-Argentina/odoo-mod-parche-stock_picking_grouping.git
 	branch = Cendis-18
+
+[submodule "Outsource-Argentina/odoo-mod-stock-traceability-remitos"]
+	path = Outsource-Argentina/odoo-mod-stock-traceability-remitos
+	url = git@github.com:Outsource-Argentina/odoo-mod-stock-traceability-remitos.git
+	branch = main
