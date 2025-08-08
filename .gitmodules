@@ -41,3 +41,8 @@
 	url = git@github.com:Outsource-Argentina/odoo-mod-campo-propietario.git
 	branch = main
 
+
+[submodule "Outsource-Argentina/odoo-mod-parche-stock_picking_grouping"]
+	path = Outsource-Argentina/odoo-mod-parche-stock_picking_grouping
+	url = git@github.com:Outsource-Argentina/odoo-mod-parche-stock_picking_grouping.git
+	branch = Cendis-18
