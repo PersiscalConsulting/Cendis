@@ -56,3 +56,8 @@
 	path = Outsource-Argentina/odoo-mod-stock-unpack-validation
 	url = git@github.com:Outsource-Argentina/odoo-mod-stock-unpack-validation.git
 	branch = 18-Cendis
+
+[submodule "Outsource-Argentina/odoo-mod-custom-stock-picking-enhancement"]
+	path = Outsource-Argentina/odoo-mod-custom-stock-picking-enhancement
+	url = git@github.com:Outsource-Argentina/odoo-mod-custom-stock-picking-enhancement.git
+	branch = 18-Cendis
