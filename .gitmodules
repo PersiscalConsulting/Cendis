@@ -76,3 +76,8 @@
 	path = Outsource-Argentina/odoo-mod-actualizacion_unidades
 	url = git@github.com:Outsource-Argentina/odoo-mod-actualizacion_unidades.git
 	branch = main
+
+[submodule "Outsource-Argentina/odoo-mod-control-product-date"]
+	path = Outsource-Argentina/odoo-mod-control-product-date
+	url = git@github.com:Outsource-Argentina/odoo-mod-control-product-date.git
+	branch = cendis18
