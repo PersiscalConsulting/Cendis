@@ -61,3 +61,8 @@
 	path = Outsource-Argentina/odoo-mod-custom-stock-picking-enhancement
 	url = git@github.com:Outsource-Argentina/odoo-mod-custom-stock-picking-enhancement.git
 	branch = 18-Cendis
+
+[submodule "Outsource-Argentina/odoo-mod-custom-stock-rejection"]
+	path = Outsource-Argentina/odoo-mod-custom-stock-rejection
+	url = git@github.com:Outsource-Argentina/odoo-mod-custom-stock-rejection.git
+	branch = 18-Cendis
