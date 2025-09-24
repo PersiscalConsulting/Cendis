@@ -51,3 +51,8 @@
 	path = Outsource-Argentina/odoo-mod-stock-traceability-remitos
 	url = git@github.com:Outsource-Argentina/odoo-mod-stock-traceability-remitos.git
 	branch = main
+
+[submodule "Outsource-Argentina/odoo-mod-stock-unpack-validation"]
+	path = Outsource-Argentina/odoo-mod-stock-unpack-validation
+	url = git@github.com:Outsource-Argentina/odoo-mod-stock-unpack-validation.git
+	branch = 18-Cendis
