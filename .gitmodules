@@ -66,3 +66,8 @@
 	path = Outsource-Argentina/odoo-mod-custom-stock-rejection
 	url = git@github.com:Outsource-Argentina/odoo-mod-custom-stock-rejection.git
 	branch = 18-Cendis
+
+[submodule "Outsource-Argentina/mod-restriccion-package-name"]
+	path = Outsource-Argentina/mod-restriccion-package-name
+	url = git@github.com:Outsource-Argentina/mod-restriccion-package-name.git
+	branch = cendis18
