@@ -71,3 +71,8 @@
 	path = Outsource-Argentina/mod-restriccion-package-name
 	url = git@github.com:Outsource-Argentina/mod-restriccion-package-name.git
 	branch = cendis18
+
+[submodule "Outsource-Argentina/odoo-mod-actualizacion_unidades"]
+	path = Outsource-Argentina/odoo-mod-actualizacion_unidades
+	url = git@github.com:Outsource-Argentina/odoo-mod-actualizacion_unidades.git
+	branch = main
