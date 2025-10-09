@@ -86,3 +86,8 @@
 	path = Outsource-Argentina/odoo-mod-stock-barcode-product-temperature
 	url = git@github.com:Outsource-Argentina/odoo-mod-stock-barcode-product-temperature.git
 	branch = 18-Cendis
+
+[submodule "Outsource-Argentina/odoo-mod-parche-tipo-documento"]
+	path = Outsource-Argentina/odoo-mod-parche-tipo-documento
+	url = git@github.com:Outsource-Argentina/odoo-mod-parche-tipo-documento.git
+	branch = main
