@@ -87,3 +87,8 @@
 	path = Outsource-Argentina/odoo-mod-parche-tipo-documento
 	url = git@github.com:Outsource-Argentina/odoo-mod-parche-tipo-documento.git
 	branch = main
+
+[submodule "Outsource-Argentina/odoo-argentina-ee-fork"]
+	path = Outsource-Argentina/odoo-argentina-ee-fork
+	url = git@github.com:Outsource-Argentina/odoo-argentina-ee-fork.git
+	branch = 18-Cendis
