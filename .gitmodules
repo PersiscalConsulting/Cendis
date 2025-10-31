@@ -2,10 +2,6 @@
 	path = ing_adhoc/odoo-argentina
 	url = https://github.com/ingadhoc/odoo-argentina.git
 	branch = 16.0
-[submodule "ing_adhoc/odoo-argentina-ee"]
-	path = ing_adhoc/odoo-argentina-ee
-	url = https://github.com/ingadhoc/odoo-argentina-ee.git
-	branch = 16.0
 [submodule "ing_adhoc/argentina-sale"]
 	path = ing_adhoc/argentina-sale
 	url = https://github.com/ingadhoc/argentina-sale.git
