@@ -92,3 +92,8 @@
 	path = Outsource-Argentina/odoo-argentina-ee-fork
 	url = git@github.com:Outsource-Argentina/odoo-argentina-ee-fork.git
 	branch = 18-Cendis
+
+[submodule "Outsource-Argentina/odoo-mod-origin_to_product_document"]
+	path = Outsource-Argentina/odoo-mod-origin_to_product_document
+	url = git@github.com:Outsource-Argentina/odoo-mod-origin_to_product_document.git
+	branch = cendisv18
