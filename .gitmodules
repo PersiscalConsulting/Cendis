@@ -97,3 +97,8 @@
 	path = Outsource-Argentina/odoo-mod-origin_to_product_document
 	url = git@github.com:Outsource-Argentina/odoo-mod-origin_to_product_document.git
 	branch = cendisv18
+
+[submodule "Outsource-Argentina/odoo-mod-l10n-ar-tax-fix-v18"]
+	path = Outsource-Argentina/odoo-mod-l10n-ar-tax-fix-v18
+	url = git@github.com:Outsource-Argentina/odoo-mod-l10n-ar-tax-fix-v18.git
+	branch = cendis
