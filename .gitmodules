@@ -102,3 +102,8 @@
 	path = Outsource-Argentina/odoo-mod-l10n-ar-tax-fix-v18
 	url = git@github.com:Outsource-Argentina/odoo-mod-l10n-ar-tax-fix-v18.git
 	branch = cendis
+
+[submodule "Outsource-Argentina/odoo-mod-stock-barcode-uom-fix"]
+	path = Outsource-Argentina/odoo-mod-stock-barcode-uom-fix
+	url = git@github.com:Outsource-Argentina/odoo-mod-stock-barcode-uom-fix.git
+	branch = 18-Cendis
