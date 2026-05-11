@@ -107,3 +107,8 @@
 	path = Outsource-Argentina/odoo-mod-stock-barcode-uom-fix
 	url = git@github.com:Outsource-Argentina/odoo-mod-stock-barcode-uom-fix.git
 	branch = 18-Cendis
+
+[submodule "Outsource-Argentina/odoo-mod-barcode-picking-stage"]
+	path = Outsource-Argentina/odoo-mod-barcode-picking-stage
+	url = git@github.com:Outsource-Argentina/odoo-mod-barcode-picking-stage.git
+	branch = 18-Cendis
