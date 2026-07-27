@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="custom_stock_control_barcode.BarcodeAuditAction">
+
+        <div t-if="state.loading" class="o_audit_barcode_loading">
+            <i class="fa fa-spinner fa-spin"/> Cargando auditoria...
+        </div>
+
+        <div t-else="" class="o_audit_barcode_container">
+
+            <div class="o_audit_barcode_header">
+                <div class="o_audit_barcode_top_row">
+                    <button class="btn btn-link o_audit_barcode_back_btn" t-on-click="onBack">
+                        <i class="fa fa-arrow-left"/> Volver
+                    </button>
+                    <div class="o_audit_barcode_title">
+                        <h2><i class="fa fa-barcode"/> Auditoria de Inventario</h2>
+                        <span t-if="state.audit" class="o_audit_barcode_name">
+                            <t t-esc="state.audit.name"/>
+                        </span>
+                    </div>
+                </div>
+
+                <div t-if="state.scannedLocations.length > 0" class="o_audit_barcode_locations_section">
+                    <div class="o_audit_barcode_locations_label">
+                        <i class="fa fa-map-marker"/> Ubicaciones escaneadas:
+                    </div>
+                    <div class="o_audit_barcode_location_tags">
+                        <t t-foreach="state.scannedLocations" t-as="loc" t-key="loc.id">
+                            <span class="o_audit_barcode_location_tag"
+                                  t-att-class="state.currentScanLocation &amp;&amp; state.currentScanLocation.id === loc.id
+                                      ? 'o_audit_barcode_location_tag--active' : ''">
+                                <t t-esc="loc.name"/>
+                            </span>
+                        </t>
+                    </div>
+                    <div t-if="state.currentScanLocation" class="o_audit_barcode_current_location">
+                        Escaneando en: <strong t-esc="state.currentScanLocation.name"/>
+                    </div>
+                </div>
+
+                <div t-if="state.isFinished" class="o_audit_barcode_finished_banner">
+                    <i class="fa fa-lock"/>
+                    Esta auditoria ya fue finalizada. Regrese al formulario para revisar los resultados.
+                </div>
+
+                <div t-att-class="'o_audit_barcode_message alert alert-' + state.messageType"
+                     t-if="state.message" role="alert">
+                    <i t-att-class="'fa ' + (
+                        state.messageType === 'success' ? 'fa-check-circle' :
+                        state.messageType === 'danger' ? 'fa-exclamation-triangle' :
+                        state.messageType === 'warning' ? 'fa-exclamation-circle' :
+                        'fa-info-circle')"/>
+                    <t t-esc="state.message"/>
+                </div>
+
+                <div t-if="state.currentBarcode" class="o_audit_barcode_last_scan">
+                    <span class="label">Ultimo escaneo:</span>
+                    <span class="barcode-value" t-esc="state.currentBarcode"/>
+                </div>
+            </div>
+
+            <div t-if="!state.isFinished">
+                <div class="o_audit_barcode_scan_area">
+                    <div class="o_audit_barcode_scanner_icon">
+                        <i class="fa fa-barcode fa-3x"/>
+                        <p t-if="!state.locationScanned">Escanee la ubicacion para comenzar</p>
+                        <p t-else="">Escanee una ubicacion o producto</p>
+                    </div>
+                </div>
+
+                <div class="o_audit_barcode_manual_input">
+                    <input type="text" class="form-control" placeholder="Escriba o escanee un codigo de barras..."
+                           t-att-value="state.barcodeInput"
+                           t-on-input="onBarcodeInput"
+                           t-on-keydown="onInputKeydown"/>
+                    <button class="btn btn-primary" t-on-click="onSubmitBarcode">
+                        <i class="fa fa-plus"/> Agregar
+                    </button>
+                </div>
+            </div>
+
+            <div class="o_audit_barcode_lines">
+                <h3>Productos Escaneados (<t t-esc="state.lines.length"/>)</h3>
+
+                <t t-if="state.lines.length > 0">
+                    <t t-foreach="state.scannedLocations" t-as="loc" t-key="'loc_' + loc.id">
+                        <div class="o_audit_barcode_location_header">
+                            <i class="fa fa-map-marker"/> <t t-esc="loc.name"/>
+                        </div>
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Lote/Serie</th>
+                                    <th t-if="state.auditState !== 'progress'" class="text-right">Teorica</th>
+                                    <th class="text-right">Contada</th>
+                                    <th t-if="state.auditState !== 'progress'" class="text-right">Diferencia</th>
+                                    <th t-if="state.auditState !== 'progress'">Motivo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="state.lines" t-as="line"
+                                   t-key="line.product_id_db + '_' + line.lot_name + '_' + line.location_id">
+                                    <tr t-if="line.location_id === loc.id"
+                                        t-att-class="line.has_error ? 'o_audit_line_error' : ''">
+                                        <td><t t-esc="line.product_name"/></td>
+                                        <td><t t-esc="line.lot_name || '-'"/></td>
+                                        <td t-if="state.auditState !== 'progress'" class="text-right">
+                                            <t t-esc="line.theoretical_qty"/>
+                                        </td>
+                                        <td class="text-right"><strong t-esc="line.counted_qty"/></td>
+                                        <td t-if="state.auditState !== 'progress'" class="text-right">
+                                            <span t-att-class="'o_audit_line_diff ' + (line.difference &lt; 0 ? 'o_audit_line_diff--negative' : line.difference &gt; 0 ? 'o_audit_line_diff--positive' : '')">
+                                                <t t-esc="line.difference"/>
+                                            </span>
+                                        </td>
+                                        <td t-if="state.auditState !== 'progress'">
+                                            <div t-if="line.difference_reason" class="o_audit_line_error_reason">
+                                                <t t-esc="line.difference_reason"/>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </t>
+
+                    <t t-set="hasUnlocatedLines" t-value="state.lines.some(l => !l.location_id)"/>
+                    <div t-if="hasUnlocatedLines" class="o_audit_barcode_location_header">
+                        <i class="fa fa-map-marker"/> Sin ubicacion
+                    </div>
+                    <table t-if="hasUnlocatedLines" class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Lote/Serie</th>
+                                <th t-if="state.auditState !== 'progress'" class="text-right">Teorica</th>
+                                <th class="text-right">Contada</th>
+                                <th t-if="state.auditState !== 'progress'" class="text-right">Diferencia</th>
+                                <th t-if="state.auditState !== 'progress'">Motivo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="state.lines" t-as="line"
+                               t-key="'noloc_' + line.product_id_db + '_' + line.lot_name">
+                                <tr t-if="!line.location_id"
+                                    t-att-class="line.has_error ? 'o_audit_line_error' : ''">
+                                    <td><t t-esc="line.product_name"/></td>
+                                    <td><t t-esc="line.lot_name || '-'"/></td>
+                                    <td t-if="state.auditState !== 'progress'" class="text-right">
+                                        <t t-esc="line.theoretical_qty"/>
+                                    </td>
+                                    <td class="text-right"><strong t-esc="line.counted_qty"/></td>
+                                    <td t-if="state.auditState !== 'progress'" class="text-right">
+                                        <span t-att-class="'o_audit_line_diff ' + (line.difference &lt; 0 ? 'o_audit_line_diff--negative' : line.difference &gt; 0 ? 'o_audit_line_diff--positive' : '')">
+                                            <t t-esc="line.difference"/>
+                                        </span>
+                                    </td>
+                                    <td t-if="state.auditState !== 'progress'">
+                                        <div t-if="line.difference_reason" class="o_audit_line_error_reason">
+                                            <t t-esc="line.difference_reason"/>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </t>
+
+                <div t-else="" class="o_audit_barcode_no_lines">
+                    <p>Aun no se han escaneado productos.</p>
+                </div>
+            </div>
+
+            <div t-if="!state.isFinished" class="o_audit_barcode_footer">
+                <button class="btn btn-primary btn-lg" t-on-click="onFinish"
+                        t-att-disabled="state.lines.length === 0 || !state.locationScanned">
+                    <i class="fa fa-check"/> Finalizar Auditoria
+                </button>
+                <button class="btn btn-secondary btn-lg" t-on-click="onCancel">
+                    <i class="fa fa-times"/> Cancelar
+                </button>
+            </div>
+
+        </div>
+    </t>
+
+</templates>

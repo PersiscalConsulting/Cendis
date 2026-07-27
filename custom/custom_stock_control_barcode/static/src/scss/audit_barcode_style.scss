@@ -1,0 +1,115 @@
+.o_audit_barcode_loading {
+    display: flex; align-items: center; justify-content: center; height: 300px;
+    font-size: 1.2rem; color: #666; i { margin-right: 12px; color: #0066ff; }
+}
+
+.o_audit_barcode_container {
+    padding: 24px;
+    padding-bottom: 100px;
+    max-width: 960px;
+    margin: 0 auto;
+
+    .o_audit_barcode_header {
+        margin-bottom: 16px;
+        .o_audit_barcode_top_row {
+            display: flex; align-items: center; gap: 16px; margin-bottom: 16px;
+        }
+        .o_audit_barcode_back_btn {
+            font-size: 0.95rem; color: #666; padding: 4px 8px; text-decoration: none;
+            i { margin-right: 4px; }
+            &:hover { color: #333; background: #f0f0f0; border-radius: 6px; }
+        }
+        .o_audit_barcode_title {
+            display: flex; align-items: center; gap: 12px;
+            h2 { margin: 0; font-size: 1.5rem; color: #333; i { color: #0066ff; margin-right: 8px; } }
+            .o_audit_barcode_name { background: #e8f0fe; color: #0066ff; padding: 4px 12px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; }
+        }
+        .o_audit_barcode_message { margin-bottom: 12px; padding: 8px 16px; border-radius: 6px; i { margin-right: 8px; } }
+        .o_audit_barcode_last_scan { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 8px 16px; font-size: 0.85rem;
+            .label { font-weight: 600; color: #666; margin-right: 8px; }
+            .barcode-value { font-family: monospace; color: #333; letter-spacing: 1px; }
+        }
+    }
+
+    .o_audit_barcode_locations_section {
+        margin-bottom: 12px;
+        .o_audit_barcode_locations_label {
+            font-size: 0.9rem; color: #666; font-weight: 600; margin-bottom: 6px;
+        }
+        .o_audit_barcode_location_tags {
+            display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0;
+        }
+        .o_audit_barcode_location_tag {
+            background: #d4edda; color: #155724; border: 1px solid #c3e6cb;
+            padding: 4px 12px; border-radius: 12px; font-size: 0.9rem;
+        }
+        .o_audit_barcode_location_tag--active {
+            background: #0066ff; color: #fff; border-color: #0055cc;
+            font-weight: 700;
+        }
+        .o_audit_barcode_current_location {
+            font-size: 0.95rem; color: #333; margin-top: 4px;
+            strong { font-weight: 700; }
+        }
+    }
+
+    .o_audit_barcode_finished_banner {
+        display: flex; align-items: center; gap: 10px;
+        background: #fff3cd; color: #856404; border: 1px solid #ffc107;
+        padding: 14px 20px; border-radius: 8px; font-size: 1rem; font-weight: 600;
+        margin-bottom: 16px;
+        i { font-size: 1.3rem; }
+    }
+    .o_audit_barcode_scan_area { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); border: 2px dashed #adb5bd; border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 16px;
+        .o_audit_barcode_scanner_icon { i { color: #0066ff; margin-bottom: 8px; } p { color: #666; font-size: 1rem; margin: 8px 0 0 0; } }
+    }
+    .o_audit_barcode_manual_input { display: flex; gap: 10px; margin-bottom: 20px;
+        input {
+            flex: 1; padding: 10px 14px; font-size: 1rem; border: 2px solid #dee2e6; border-radius: 8px;
+            &:focus { border-color: #0066ff; outline: none; box-shadow: 0 0 0 3px rgba(0,102,255,0.15); }
+        }
+        .btn { padding: 10px 20px; font-weight: 600; border-radius: 8px; white-space: nowrap;
+            i { margin-right: 6px; }
+        }
+    }
+    .o_audit_barcode_lines { margin-bottom: 16px;
+        h3 { font-size: 1.1rem; color: #333; margin-bottom: 12px; border-bottom: 2px solid #eee; padding-bottom: 8px; }
+        table { margin-bottom: 0; th { background: #f8f9fa; border-bottom: 2px solid #dee2e6; font-size: 0.85rem; text-transform: uppercase; color: #666; } }
+        .o_audit_line_error { background-color: #fff0f0 !important;
+            td { color: #c0392b !important; }
+        }
+        .o_audit_line_error_reason { font-size: 0.8rem; color: #c0392b; font-style: italic; margin-top: 2px; }
+        .o_audit_line_diff { font-family: monospace; font-weight: 600; }
+        .o_audit_line_diff--negative { color: #c0392b; }
+        .o_audit_line_diff--positive { color: #27ae60; }
+        .o_audit_barcode_no_lines { text-align: center; padding: 40px; color: #999; background: #f8f9fa; border-radius: 8px; }
+    }
+    .o_audit_barcode_location_header {
+        background: #e8f0fe; color: #0066ff;
+        padding: 10px 16px; border-radius: 8px;
+        font-size: 1.1rem; font-weight: 700;
+        margin: 16px 0 8px 0; border-left: 4px solid #0066ff;
+        i { margin-right: 8px; }
+    }
+    .o_audit_barcode_footer { background: #fff; display: flex; gap: 12px; justify-content: flex-end; padding: 16px 0; border-top: 1px solid #eee; }
+}
+
+.o_action_manager > div {
+    overflow-y: auto !important;
+    height: 100vh;
+}
+
+@media (max-width: 576px) {
+    .o_audit_barcode_container {
+        padding: 12px;
+        padding-bottom: 100px;
+    }
+    .o_audit_barcode_footer {
+        flex-direction: column;
+        .btn { width: 100%; }
+    }
+    .o_audit_barcode_manual_input {
+        flex-direction: column;
+        .btn { width: 100%; }
+    }
+}

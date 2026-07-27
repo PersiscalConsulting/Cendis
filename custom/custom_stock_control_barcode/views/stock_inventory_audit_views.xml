@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_audit_barcode_owl" model="ir.actions.client">
+        <field name="name">Escanear</field>
+        <field name="tag">custom_stock_control_barcode.audit_barcode_action</field>
+    </record>
+
+    <record id="seq_stock_inventory_audit" model="ir.sequence">
+        <field name="name">Secuencia de Auditoria de Inventario</field>
+        <field name="code">stock.inventory.audit</field>
+        <field name="prefix">AUD/%(year)s/</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="view_stock_inventory_audit_tree" model="ir.ui.view">
+        <field name="name">stock.inventory.audit.tree</field>
+        <field name="model">stock.inventory.audit</field>
+        <field name="arch" type="xml">
+            <list string="Auditorias de Inventario">
+                <field name="name"/>
+                <field name="scanned_location_ids" widget="many2many_tags"/>
+                <field name="user_id"/>
+                <field name="date"/>
+                <field name="scanned_qty" string="Items"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_stock_inventory_audit_form" model="ir.ui.view">
+        <field name="name">stock.inventory.audit.form</field>
+        <field name="model">stock.inventory.audit</field>
+        <field name="arch" type="xml">
+            <form string="Auditoria de Inventario">
+                <header>
+                    <button name="action_start_audit" string="Iniciar Conteo" type="object"
+                            class="oe_highlight" invisible="1"/>
+                    <button name="action_barcode_scan"
+                            type="object"
+                            string="Escanear Codigo de Barras"
+                            class="oe_highlight"
+                            invisible="state not in ('draft', 'progress')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,progress,review,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="scanned_location_ids" widget="many2many_tags"
+                                   readonly="1"
+                                   invisible="state == 'draft'"/>
+                            <field name="location_id" invisible="1"/>
+                            <field name="user_id"/>
+                        </group>
+                        <group>
+                            <field name="date"/>
+                            <field name="scanned_qty" readonly="1"
+                                   invisible="state == 'draft'"/>
+                        </group>
+                    </group>
+                    <notebook invisible="state == 'draft'">
+                        <page string="Lineas de Auditoria" name="lines">
+                            <field name="line_ids" readonly="state != 'progress'">
+                                <list string="Lineas" editable="bottom" decoration-danger="has_error">
+                                    <field name="location_id" readonly="1"/>
+                                    <field name="product_id"/>
+                                    <field name="lot_id" groups="stock.group_production_lot"/>
+                                    <field name="theoretical_qty"
+                                           column_invisible="parent.state == 'progress'"/>
+                                    <field name="counted_qty"/>
+                                    <field name="difference"
+                                           column_invisible="parent.state == 'progress'"/>
+                                    <field name="has_error" column_invisible="1"/>
+                                    <field name="difference_reason" optional="show"
+                                           column_invisible="parent.state == 'progress'"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Errores / Diferencias" name="errors"
+                              invisible="state not in ('review', 'done')">
+                            <field name="error_summary_ids" readonly="1">
+                                <list string="Errores por Producto/Lote">
+                                    <field name="product_id"/>
+                                    <field name="lot_id" groups="stock.group_production_lot"/>
+                                    <field name="theoretical_qty"/>
+                                    <field name="counted_qty"/>
+                                    <field name="difference"/>
+                                    <field name="difference_reason" widget="text"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_stock_inventory_audit" model="ir.actions.act_window">
+        <field name="name">Auditorias a Ciegas</field>
+        <field name="res_model">stock.inventory.audit</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_stock_inventory_audit"
+              name="Auditorias a Ciegas"
+              parent="stock.menu_stock_warehouse_mgmt"
+              action="action_stock_inventory_audit"
+              sequence="35"/>
+
+</odoo>

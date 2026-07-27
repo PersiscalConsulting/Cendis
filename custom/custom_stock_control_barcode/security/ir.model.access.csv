@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_stock_inventory_audit,stock.inventory.audit,model_stock_inventory_audit,stock.group_stock_user,1,1,1,1
+access_stock_inventory_audit_line,stock.inventory.audit.line,model_stock_inventory_audit_line,stock.group_stock_user,1,1,1,1
+access_stock_inventory_audit_finish_wizard,stock.inventory.audit.finish.wizard,model_stock_inventory_audit_finish_wizard,stock.group_stock_user,1,1,1,1
+access_stock_inventory_audit_error_summary,stock.inventory.audit.error.summary,model_stock_inventory_audit_error_summary,stock.group_stock_user,1,1,1,1
