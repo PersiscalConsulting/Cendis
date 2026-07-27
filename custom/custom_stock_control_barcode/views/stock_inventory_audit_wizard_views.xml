@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_stock_inventory_audit_finish_wizard_form" model="ir.ui.view">
+        <field name="name">stock.inventory.audit.finish.wizard.form</field>
+        <field name="model">stock.inventory.audit.finish.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Finalizar Auditoria">
+                <group>
+                    <group>
+                        <field name="audit_id" invisible="1"/>
+                        <field name="location_names" readonly="1"/>
+                        <field name="scanned_qty" readonly="1"/>
+                    </group>
+                </group>
+                <p class="text-muted mb-3">
+                    Se cerrara el escaneo y la auditoria pasara a estado "Por Revisar".
+                    No podra agregar mas lineas despues de finalizar.
+                </p>
+                <footer>
+                    <button name="button_confirm_finish" string="Si, Finalizar"
+                            type="object" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_audit_finish_wizard" model="ir.actions.act_window">
+        <field name="name">Finalizar Auditoria</field>
+        <field name="res_model">stock.inventory.audit.finish.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>
