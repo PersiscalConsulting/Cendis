@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_stock_inventory_audit_form_inherit_fix" model="ir.ui.view">
+        <field name="name">stock.inventory.audit.form.fix</field>
+        <field name="model">stock.inventory.audit</field>
+        <field name="inherit_id" ref="custom_stock_control_barcode.view_stock_inventory_audit_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='user_id']" position="after">
+                <field name="company_id" readonly="1"/>
+            </xpath>
+            <xpath expr="//sheet" position="after">
+                <chatter/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
