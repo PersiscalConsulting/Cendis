@@ -8,6 +8,13 @@
     'data': [
         'views/stock_inventory_audit_views.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'custom_fix_stock_control/static/src/js/audit_barcode_action.js',
+            'custom_fix_stock_control/static/src/xml/audit_barcode_templates.xml',
+            'custom_fix_stock_control/static/src/scss/audit_barcode_style.scss',
+        ],
+    },
     'installable': True,
     'application': False,
     'license': 'LGPL-3',
