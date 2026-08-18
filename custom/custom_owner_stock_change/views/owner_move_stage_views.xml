@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_owner_move_stage_tree" model="ir.ui.view">
+        <field name="name">owner.move.stage.tree</field>
+        <field name="model">owner.move.stage</field>
+        <field name="arch" type="xml">
+            <list string="Etapas de Movimientos entre Propietarios">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="state"/>
+                <field name="fold"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_owner_move_stage_form" model="ir.ui.view">
+        <field name="name">owner.move.stage.form</field>
+        <field name="model">owner.move.stage</field>
+        <field name="arch" type="xml">
+            <form string="Etapa">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group>
+                            <field name="state"/>
+                            <field name="color" widget="color_picker"/>
+                            <field name="fold"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_owner_move_stage" model="ir.actions.act_window">
+        <field name="name">Etapas</field>
+        <field name="res_model">owner.move.stage</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_owner_move_config"
+              name="Movimientos entre Propietarios"
+              parent="stock.menu_stock_config_settings"
+              sequence="50">
+        <menuitem id="menu_owner_move_stage"
+                  name="Etapas"
+                  action="action_owner_move_stage"
+                  sequence="10"/>
+    </menuitem>
+
+</odoo>
