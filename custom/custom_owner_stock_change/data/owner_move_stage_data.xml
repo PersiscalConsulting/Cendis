@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="stage_draft" model="owner.move.stage">
+        <field name="name">Borrador</field>
+        <field name="sequence">10</field>
+        <field name="state">draft</field>
+        <field name="color">0</field>
+    </record>
+    <record id="stage_waiting" model="owner.move.stage">
+        <field name="name">En espera</field>
+        <field name="sequence">20</field>
+        <field name="state">waiting</field>
+        <field name="color">1</field>
+    </record>
+    <record id="stage_available" model="owner.move.stage">
+        <field name="name">Disponible</field>
+        <field name="sequence">30</field>
+        <field name="state">available</field>
+        <field name="color">2</field>
+    </record>
+    <record id="stage_done" model="owner.move.stage">
+        <field name="name">Hecho</field>
+        <field name="sequence">40</field>
+        <field name="state">done</field>
+        <field name="color">3</field>
+    </record>
+    <record id="stage_cancelled" model="owner.move.stage">
+        <field name="name">Rechazado</field>
+        <field name="sequence">50</field>
+        <field name="state">cancelled</field>
+        <field name="color">4</field>
+    </record>
+</odoo>

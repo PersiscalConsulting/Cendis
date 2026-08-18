@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="action_validate_move" model="ir.actions.server">
+            <field name="name">Validar Movimiento entre Propietarios</field>
+            <field name="model_id" ref="model_owner_move_stock"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+            
+if not records and context.get('active_ids'):
+    records = env['owner.move.stock'].browse(context['active_ids'])
+elif not records and context.get('active_id'):
+    records = env['owner.move.stock'].browse(context['active_id'])
+
+# 1. VALIDACIONES PREVIAS
+# ---------------------------------------------------------------
+for move in records:
+    if move.state != 'available':
+        raise UserError('Solo se puede validar un movimiento en estado Disponible.')
+    if not move.detail_ids:
+        raise UserError('El movimiento no tiene detalles escaneados.')
+
+    get_param = env['ir.config_parameter'].sudo().get_param
+    now = datetime.datetime.now()
+    owner = move.owner_id
+    picking_model = env['stock.picking']
+    move_line_model = env['stock.move.line']
+
+    # devuelve True si el campo existe en el modelo dado
+    def _has_field(model, fname):
+        return fname in model._fields
+
+    # busca un campo x_studio en el incoming move line y lo devuelve o False si no existe en ninguno de los dos lados
+    def _copy_studio_field(incoming, fname):
+        if incoming and _has_field(move_line_model, fname) and _has_field(incoming, fname):
+            return incoming[fname]
+        return False
+
+    # 2. CONFIGURACION DE LA SALIDA (OUT)
+    # -----------------------------------------------------------------------
+
+    # 2a. Operacion de picking type (outgoing)
+    picking_type = False
+    pt_param = sudo().get_param('owner_move_stock.exit_picking_type')
+    if pt_param:
+        try:
+            picking_type = env['stock.picking.type'].browse(int(pt_param))
+        except (TypeError, ValueError):
+            picking_type = False
+    if not picking_type or not picking_type.exists():
+        picking_type = env['stock.picking.type'].search(
+            [('code', '=', 'outgoing')], limit=1)
+    if not picking_type:
+        raise UserError('No hay una operacion de salida configurada.')
+
+    # 2b. Ubicacion de salida (origen del picking OUT)
+    exit_location = False
+    loc_param = sudo().get_param('owner_move_stock.exit_location')
+    if loc_param:
+        try:
+            exit_location = env['stock.location'].browse(int(loc_param))
+        except (TypeError, ValueError):
+            exit_location = False
+    if not exit_location or not exit_location.exists():
+        exit_location = move._get_exit_location()
+    if not exit_location:
+        raise UserError('No hay una ubicacion de salida configurada.')
+
+    # 2c. Ubicacion destino del picking OUT (la del picking type o fallback a clientes)
+    dest_location = picking_type.default_location_dest_id
+    if not dest_location:
+        dest_location = env.ref('stock.stock_location_customers')
+
+    # 3. CREAR Y VALIDAR PICKING DE SALIDA (OUT)
+    # -----------------------------------------------------------------------
+
+    # 3a. Valores base del picking OUT
+    picking_vals = {
+        'partner_id': owner.id,
+        'picking_type_id': picking_type.id,
+        'location_id': exit_location.id,
+        'location_dest_id': dest_location.id,
+        'origin': move.name,
+        'scheduled_date': now,
+        'date_deadline': now,
+        'company_id': move.company_id.id,
+    }
+
+    # 3b. Campos de Studio en el picking (solo si existen)
+    for fname, value in {
+        'x_studio_control_agrupamiento': True,
+        'x_studio_inout_automatico': True,
+        'x_studio_factura_destinatario': move.origin_doc,
+        'x_studio_remito': move.exit_remito,
+        'x_studio_confirmar_peso': True,
+        'owner_id': owner.id,
+        'destino_id': move.dest_contact_id.id if move.dest_contact_id else False,
+    }.items():
+        if _has_field(picking_model, fname):
+            picking_vals[fname] = value
+
+    picking = picking_model.create(picking_vals)
+
+    # 3c. Helper para buscar la ultima move line entrante de un detalle (historico)
+    def _get_incoming_line(detail):
+        domain = [
+            ('picking_type_id.code', '=', 'incoming'),
+            ('product_id', '=', detail.product_id.id),
+            ('state', '=', 'done'),
+        ]
+        if detail.lot_id:
+            domain.append(('lot_id', '=', detail.lot_id.id))
+        else:
+            domain.append(('lot_id', '=', False))
+        return env['stock.move.line'].search(
+            domain, order='date desc, id desc', limit=1)
+
+    # 3d. Crear moves con sus move lines para el picking OUT
+    for line in move.line_ids:
+        details = line.detail_ids
+        if not details:
+            continue
+
+        move_vals = {
+            'name': move.name,
+            'reference': move.name,
+            'picking_id': picking.id,
+            'product_id': line.product_id.id,
+            'product_uom_qty': sum(details.mapped('qty')),
+            'product_uom': line.product_id.uom_id.id,
+            'restrict_partner_id': owner.id,
+            'location_id': exit_location.id,
+            'location_dest_id': dest_location.id,
+            'company_id': move.company_id.id,
+            'picked': True,
+        }
+        new_move = env['stock.move'].create(move_vals)
+
+        # Crear move lines del OUT: una por cada detalle escaneado
+        out_line_vals = []
+        for detail in details:
+            incoming = _get_incoming_line(detail)
+            quant = detail.quant_id
+
+            ml = {
+                'product_id': detail.product_id.id,
+                'product_uom_id': detail.product_id.uom_id.id,
+                'quantity': detail.qty,
+                'picking_id': picking.id,
+                'location_id': exit_location.id,
+                'location_dest_id': dest_location.id,
+                'lot_id': detail.lot_id.id if detail.lot_id else False,
+                'result_package_id': detail.package_id.id if detail.package_id else False,
+                'expiration_date': detail.expiration_date,
+                'company_id': move.company_id.id,
+            }
+
+            # Si hay quant de origen, usar su paquete y propietario
+            if quant:
+                ml['quant_id'] = quant.id
+                ml['package_id'] = quant.package_id.id if quant.package_id else False
+
+            # Copiar campos de Studio desde el move line historico
+            for fname in [
+                'x_studio_documento_original',
+                'x_studio_kilos',
+                'x_studio_nro_de_tropa',
+                'x_studio_p_transito',
+                'x_studio_n_produccion',
+            ]:
+                val = _copy_studio_field(incoming, fname)
+                if val is not False:
+                    ml[fname] = val
+
+            out_line_vals.append((0, 0, ml))
+
+        if out_line_vals:
+            new_move.write({'move_line_ids': out_line_vals})
+
+    # 3e. Validar el picking OUT
+    res = picking.with_context(skip_immediate_transfer=True).button_validate()
+    if isinstance(res, dict):
+        picking._action_done()
+
+    # 4. CONFIGURACION DEL INGRESO (IN)
+    # -----------------------------------------------------------------------
+
+    dest_supplier = move.dest_supplier_id
+    if not dest_supplier:
+        raise UserError('Debe indicar el Proveedor del destino.')
+    dest_owner = move.dest_owner_id
+    source_location = picking.location_dest_id
+    if not source_location:
+        raise UserError('No hay una ubicacion de origen para el ingreso.')
+
+    # 4a. Operacion de picking type (incoming)
+    in_picking_type = False
+    in_pt_param = sudo().get_param('owner_move_stock.entry_picking_type')
+    if in_pt_param:
+        try:
+            in_picking_type = env['stock.picking.type'].browse(int(in_pt_param))
+        except (TypeError, ValueError):
+            in_picking_type = False
+    if not in_picking_type or not in_picking_type.exists():
+        in_picking_type = env['stock.picking.type'].search(
+            [('code', '=', 'incoming')], limit=1)
+    if not in_picking_type:
+        raise UserError('No hay una operacion de entrada configurada.')
+
+    # 4b. Ubicacion destino del picking IN
+    entry_location = False
+    in_loc_param = sudo().get_param('owner_move_stock.entry_location')
+    if in_loc_param:
+        try:
+            entry_location = env['stock.location'].browse(int(in_loc_param))
+        except (TypeError, ValueError):
+            entry_location = False
+    if not entry_location or not entry_location.exists():
+        entry_location = in_picking_type.default_location_dest_id
+    if not entry_location:
+        raise UserError('No hay una ubicacion de entrada configurada.')
+
+    # 5. CREAR Y VALIDAR PICKING DE INGRESO (IN)
+    # -----------------------------------------------------------------------
+
+    # 5a. Valores base del picking IN
+    in_picking_vals = {
+        'partner_id': move.dest_supplier_id.id if move.dest_supplier_id else False,
+        'picking_type_id': in_picking_type.id,
+        'location_id': dest_location.id,             # origen: donde quedo la mercaderia tras el OUT
+        'location_dest_id': entry_location.id,        # destino: ubicacion de entrada final
+        'origin': move.name,
+        'scheduled_date': now,
+        'date_deadline': now,
+        'company_id': move.company_id.id,
+    }
+
+    # 5b. Campos de Studio en el picking IN (solo si existen)
+    for fname, value in {
+        'x_studio_inout_automatico': True,
+        'x_studio_control_agrupamiento': True,
+        'owner_id': move.dest_owner_id.id,
+    }.items():
+        if _has_field(picking_model, fname):
+            in_picking_vals[fname] = value
+
+    in_picking = picking_model.create(in_picking_vals)
+
+    # 5c. Crear moves con sus move lines para el picking IN. Se mapean los paquetes del OUT a nuevos paquetes en el IN
+    new_pkg_by_pkg = {}
+    moved_quant_ids = set()
+
+    for line in move.line_ids:
+        details = line.detail_ids
+        if not details:
+            continue
+
+        in_line_vals = []
+        total_qty = 0.0
+
+        for detail in details:
+            pkg_id = detail.package_id.id if detail.package_id else False
+
+            # Buscar el quant que quedo en la ubicacion de destino del OUT, despues de validar el picking de salida
+            domain = [
+                ('location_id', '=', dest_location.id),
+                ('owner_id', '=', owner.id),
+                ('product_id', '=', detail.product_id.id),
+                ('quantity', '>', 0),
+                ('package_id', '=', pkg_id),
+            ]
+            if detail.lot_id:
+                domain.append(('lot_id', '=', detail.lot_id.id))
+            else:
+                domain.append(('lot_id', '=', False))
+
+            src_quant = env['stock.quant'].search(domain, limit=1)
+            if not src_quant or src_quant.id in moved_quant_ids:
+                continue
+            moved_quant_ids.add(src_quant.id)
+
+            # Crear nuevo paquete para el IN si el detalle tenia paquete
+            new_pkg = new_pkg_by_pkg.get(pkg_id)
+            if pkg_id and not new_pkg:
+                new_pkg = env['stock.quant.package'].create({})
+                new_pkg_by_pkg[pkg_id] = new_pkg
+
+            incoming = _get_incoming_line(detail)
+
+            ml = {
+                'product_id': detail.product_id.id,
+                'product_uom_id': detail.product_id.uom_id.id,
+                'quantity': src_quant.quantity,
+                'picking_id': in_picking.id,
+                'location_id': dest_location.id,
+                'location_dest_id': entry_location.id,
+                'lot_id': src_quant.lot_id.id if src_quant.lot_id else False,
+                'package_id': src_quant.package_id.id if src_quant.package_id else False,
+                'result_package_id': new_pkg.id if new_pkg else False,
+                'owner_id': src_quant.owner_id.id if src_quant.owner_id else owner.id,
+                'quant_id': src_quant.id,
+                'company_id': move.company_id.id,
+            }
+
+            if detail.expiration_date:
+                ml['expiration_date'] = detail.expiration_date
+            elif src_quant.lot_id and src_quant.lot_id.expiration_date:
+                ml['expiration_date'] = src_quant.lot_id.expiration_date
+
+            # Copiar campos de Studio desde el move line historico
+            for fname in [
+                'x_studio_documento_original',
+                'x_studio_kilos',
+                'x_studio_nro_de_tropa',
+                'x_studio_p_transito',
+                'x_studio_n_produccion',
+            ]:
+                val = _copy_studio_field(incoming, fname)
+                if val is not False:
+                    ml[fname] = val
+
+            in_line_vals.append((0, 0, ml))
+            total_qty += src_quant.quantity
+
+        if not in_line_vals:
+            continue
+
+        env['stock.move'].create({
+            'name': move.name,
+            'reference': move.name,
+            'picking_id': in_picking.id,
+            'product_id': line.product_id.id,
+            'product_uom_qty': total_qty,
+            'product_uom': line.product_id.uom_id.id,
+            'restrict_partner_id': owner.id,
+            'location_id': dest_location.id,
+            'location_dest_id': entry_location.id,
+            'company_id': move.company_id.id,
+            'picked': True,
+            'move_line_ids': in_line_vals,
+        })
+
+    # 5d. Validar el picking IN
+    res_in = in_picking.with_context(skip_immediate_transfer=True).button_validate()
+    if isinstance(res_in, dict):
+        in_picking._action_done()
+
+    # 6. CAMBIAR PROPIETARIO Y ACTUALIZAR MOVIMIENTO
+    # -----------------------------------------------------------------------
+
+    # 6a. Transferir la propiedad de los quants al propietario destino
+    for detail in move.detail_ids:
+        pkg_id = detail.package_id.id if detail.package_id else False
+        new_pkg = new_pkg_by_pkg.get(pkg_id)
+
+        entry_domain = [
+            ('location_id', '=', entry_location.id),
+            ('product_id', '=', detail.product_id.id),
+            ('owner_id', '=', owner.id),
+            ('quantity', '>', 0),
+            ('package_id', '=', new_pkg.id if new_pkg else False),
+        ]
+        if detail.lot_id:
+            entry_domain.append(('lot_id', '=', detail.lot_id.id))
+        else:
+            entry_domain.append(('lot_id', '=', False))
+
+        entry_quant = env['stock.quant'].search(entry_domain, limit=1)
+        if entry_quant:
+            entry_quant.write({'owner_id': move.dest_owner_id.id})
+            detail.write({'quant_id': entry_quant.id})
+
+    # 6b. Marcar movimiento como completado
+    done_stage = env['owner.move.stage'].search(
+        [('state', '=', 'done')], limit=1)
+    if not done_stage:
+        raise UserError('No existe una etapa "Hecho" configurada.')
+
+    move.write({
+        'stage_id': done_stage.id,
+        'date_end': now,
+        'out_picking_id': picking.id,
+        'in_picking_id': in_picking.id,
+    })
+        
+        ]]></field>
+        </record>
+
+    </data>
+</odoo>

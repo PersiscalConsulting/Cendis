@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.owner.move.stock</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="35"/>
+        <field name="inherit_id" ref="stock.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='stock']" position="inside">
+                <block title="Movimientos entre Propietarios" name="owner_move_setting_container">
+                    <setting id="owner_move_manual_qty_setting"
+                             string="Permitir ingreso manual de cantidad en el escaneo"
+                             help="Permite ingresar manualmente la cantidad al escanear un lote o producto.">
+                        <field name="owner_move_manual_qty"/>
+                    </setting>
+                    <setting id="owner_move_allow_delete_setting"
+                             string="Permitir eliminar lineas escaneadas"
+                             help="Muestra un boton para eliminar lineas escaneadas dentro del escaneo. Las lineas ya empaquetadas no se pueden eliminar.">
+                        <field name="owner_move_allow_delete"/>
+                    </setting>
+                    <setting id="owner_move_validate_stock_setting"
+                             string="Validar existencias al empaquetar"
+                             help="Al empaquetar, verifica que la cantidad seleccionada no supere las existencias disponibles del propietario origen en la ubicacion. Tambien aplica como red de seguridad al finalizar para las lineas sin empaquetar.">
+                        <field name="owner_move_validate_stock"/>
+                    </setting>
+                    <setting id="owner_move_require_packed_setting"
+                             string="Exigir empaquetado completo para finalizar"
+                             help="Impide finalizar el escaneo mientras queden lineas sin empaquetar.">
+                        <field name="owner_move_require_packed"/>
+                    </setting>
+                    <setting id="owner_move_entry_location_setting"
+                             string="Ubicacion de entrada"
+                             help="Ubicacion de entrada de stock. Se utilizara en una etapa posterior.">
+                        <field name="owner_move_entry_location"/>
+                    </setting>
+                    <setting id="owner_move_exit_location_setting"
+                             string="Ubicacion de salida"
+                             help="Ubicacion a la que se trasladan los paquetes armados al finalizar el escaneo (ej: TOR1/Expedicion). Si queda vacia, los paquetes quedan en la ubicacion de escaneo.">
+                        <field name="owner_move_exit_location"/>
+                    </setting>
+                    <setting id="owner_move_exit_picking_type_setting"
+                             string="Operacion de salida"
+                             help="Operacion de salida (outgoing) utilizada al validar el movimiento para crear el picking de salida hacia el cliente.">
+                        <field name="owner_move_exit_picking_type"/>
+                    </setting>
+                    <setting id="owner_move_entry_picking_type_setting"
+                             string="Operacion de entrada"
+                             help="Operacion de entrada (incoming) prevista para la etapa de recepcion del propietario destino.">
+                        <field name="owner_move_entry_picking_type"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
