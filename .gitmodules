@@ -1,27 +1,27 @@
 [submodule "ing_adhoc/odoo-argentina"]
 	path = ing_adhoc/odoo-argentina
 	url = https://github.com/ingadhoc/odoo-argentina.git
-	branch = 16.0
+	branch = 18.0
 [submodule "ing_adhoc/argentina-sale"]
 	path = ing_adhoc/argentina-sale
 	url = https://github.com/ingadhoc/argentina-sale.git
-	branch = 16.0
+	branch = 18.0
 [submodule "ing_adhoc/account-invoicing"]
 	path = ing_adhoc/account-invoicing
 	url = https://github.com/ingadhoc/account-invoicing.git
-	branch = 16.0
+	branch = 18.0
 [submodule "ing_adhoc/account-financial-tools"]
 	path = ing_adhoc/account-financial-tools
 	url = https://github.com/ingadhoc/account-financial-tools.git
-	branch = 16.0
+	branch = 18.0
 [submodule "ing_adhoc/account-payment"]
 	path = ing_adhoc/account-payment
 	url = https://github.com/ingadhoc/account-payment.git
-	branch = 16.0
+	branch = 18.0
 [submodule "ing_adhoc/stock"]
 	path = ing_adhoc/stock
 	url = https://github.com/ingadhoc/stock.git
-	branch = 16.0
+	branch = 18.0
 [submodule "OCA/server-ux"]
 	path = OCA/server-ux
 	url = https://github.com/OCA/server-ux.git
@@ -112,3 +112,11 @@
 	path = Outsource-Argentina/odoo-mod-barcode-picking-stage
 	url = git@github.com:Outsource-Argentina/odoo-mod-barcode-picking-stage.git
 	branch = 18-Cendis
+[submodule "ing_adhoc/sale"]
+	path = ing_adhoc/sale
+	url = git@github.com:ingadhoc/sale.git
+	branch = 18.0
+[submodule "ing_adhoc/miscellaneous"]
+	path = ing_adhoc/miscellaneous
+	url = git@github.com:ingadhoc/miscellaneous.git
+	branch = 18.0
