@@ -120,3 +120,8 @@
 	path = ing_adhoc/miscellaneous
 	url = git@github.com:ingadhoc/miscellaneous.git
 	branch = 18.0
+
+[submodule "Outsource-Argentina/odoo-mod-l10n-ar-remito-carnico"]
+	path = Outsource-Argentina/odoo-mod-l10n-ar-remito-carnico
+	url = git@github.com:Outsource-Argentina/odoo-mod-l10n-ar-remito-carnico.git
+	branch = 18-Cendis
