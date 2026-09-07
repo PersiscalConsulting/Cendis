@@ -125,3 +125,8 @@
 	path = Outsource-Argentina/odoo-mod-l10n-ar-remito-carnico
 	url = git@github.com:Outsource-Argentina/odoo-mod-l10n-ar-remito-carnico.git
 	branch = 18-Cendis
+
+[submodule "Outsource-Argentina/odoo-mod-stock-barcode-fix"]
+	path = Outsource-Argentina/odoo-mod-stock-barcode-fix
+	url = git@github.com:Outsource-Argentina/odoo-mod-stock-barcode-fix.git
+	branch = 18-Cendis
