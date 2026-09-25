@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- LIST VIEW                                                     -->
+    <!-- ============================================================ -->
+    <record id="view_review_stock_picking_list" model="ir.ui.view">
+        <field name="name">review.stock.picking.list</field>
+        <field name="model">review.stock.picking</field>
+        <field name="arch" type="xml">
+            <list string="Repasos de Stock Picking">
+                <field name="name"/>
+                <field name="preparation_id"/>
+                <field name="owner_id"/>
+                <field name="partner_short_name" string="Cliente/Destino"/>
+                <field name="user_id"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="stage_id" widget="badge"
+                       decoration-info="state == 'available'"
+                       decoration-warning="state == 'in_progress'"
+                       decoration-success="state == 'done'"
+                       decoration-danger="state in ('modified', 'cancelled')"/>
+                <field name="package_count" string="Paquetes"/>
+                <field name="state" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- FORM VIEW                                                     -->
+    <!-- ============================================================ -->
+    <record id="view_review_stock_picking_form" model="ir.ui.view">
+        <field name="name">review.stock.picking.form</field>
+        <field name="model">review.stock.picking</field>
+        <field name="arch" type="xml">
+            <form string="Repaso de Stock Picking">
+                <header>
+                    <button name="action_start" type="object"
+                            string="Iniciar Repaso" class="oe_highlight"
+                            invisible="state != 'available'"/>
+                    <button name="action_open_scan" type="object"
+                            string="Escanear" class="oe_highlight"
+                            invisible="state not in ('available', 'in_progress') or date_end"/>
+                    <button name="action_finish" type="object"
+                            string="Validar" class="oe_highlight"
+                            confirm="Se ejecutara la finalizacion del repaso (validacion y cambios de stock). Desea continuar?"
+                            invisible="state != 'in_progress' or not date_end"/>
+                    <button name="action_cancel" type="object"
+                            string="Cancelar"
+                            confirm="El repaso pasara a estado Cancelado. Desea continuar?"
+                            invisible="state == 'done'"/>
+                    <field name="stage_id" widget="statusbar"
+                           options="{'clickable': False}"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_packages" type="object"
+                                class="oe_stat_button" icon="fa-cube"
+                                invisible="package_count == 0">
+                            <field name="package_count" widget="statinfo" string="Paquetes"/>
+                        </button>
+                        <button name="toggle_active" type="object"
+                                class="oe_stat_button" icon="fa-archive"
+                                groups="base.group_system">
+                            <field name="active" widget="boolean_button"
+                                   options="{'terminology': 'archive'}"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="preparation_id"/>
+                            <field name="owner_id"/>
+                            <field name="partner_id"/>
+                            <field name="user_id"/>
+                        </group>
+                        <group>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Lineas de Repaso" name="moves">
+                            <field name="move_ids">
+                                <list string="Lineas" editable="bottom">
+                                    <button name="action_view_line_form"
+                                            type="object" string="Ver"
+                                            icon="fa-external-link"
+                                            class="btn-link"/>
+                                    <field name="product_id"/>
+                                    <field name="qty_preparation"/>
+                                    <field name="qty_packaged" readonly="1"/>
+                                    <field name="qty_remaining" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Detalles por Lote" name="details">
+                            <field name="move_ids">
+                                <list string="Detalles">
+                                    <field name="product_id"/>
+                                    <field name="move_line_ids">
+                                        <list string="Detalles">
+                                            <field name="lot_id"/>
+                                            <field name="owner_id"/>
+                                            <field name="qty"/>
+                                            <field name="package_id"/>
+                                            <field name="state" readonly="1"/>
+                                        </list>
+                                    </field>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notas" name="notes">
+                            <field name="note" placeholder="Notas del repaso..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- SEARCH VIEW                                                   -->
+    <!-- ============================================================ -->
+    <record id="view_review_stock_picking_search" model="ir.ui.view">
+        <field name="name">review.stock.picking.search</field>
+        <field name="model">review.stock.picking</field>
+        <field name="arch" type="xml">
+            <search string="Repasos">
+                <field name="name"/>
+                <field name="preparation_id"/>
+                <field name="owner_id"/>
+                <field name="partner_id"/>
+                <filter name="filter_available" string="Disponibles"
+                        domain="[('state', '=', 'available')]"/>
+                <filter name="filter_in_progress" string="En Proceso"
+                        domain="[('state', '=', 'in_progress')]"/>
+                <filter name="filter_done" string="Finalizados"
+                        domain="[('state', '=', 'done')]"/>
+                <filter name="filter_cancelled" string="Cancelados"
+                        domain="[('state', '=', 'cancelled')]"/>
+                <filter name="archived" string="Archivados"
+                        domain="[('active', '=', False)]"
+                        groups="base.group_system"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_preparation" string="Preparación"
+                            context="{'group_by': 'preparation_id'}"/>
+                    <filter name="group_stage" string="Etapa" context="{'group_by': 'stage_id'}"/>
+                    <filter name="group_owner" string="Propietario" context="{'group_by': 'owner_id'}"/>
+                    <filter name="group_state" string="Estado" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- ACTION                                                        -->
+    <!-- ============================================================ -->
+    <record id="action_review_stock_picking" model="ir.actions.act_window">
+        <field name="name">Repasos de Stock Picking</field>
+        <field name="res_model">review.stock.picking</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_review_stock_picking"
+              name="Repasos de Stock"
+              parent="stock.menu_stock_warehouse_mgmt"
+              action="action_review_stock_picking"
+              sequence="46"/>
+
+</odoo>

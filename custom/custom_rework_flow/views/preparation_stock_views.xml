@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Hereda el form de preparacion: readonly condicional, pestaña de
+         historial de modificaciones y boton de gestion de excedentes. -->
+    <record id="view_preparation_stock_form_inherit_rework" model="ir.ui.view">
+        <field name="name">preparation.stock.form.rework</field>
+        <field name="model">preparation.stock</field>
+        <field name="inherit_id" ref="custom_preparation_stock.view_preparation_stock_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Campos ocultos para control de UI -->
+            <xpath expr="//sheet" position="before">
+                <field name="is_rework" invisible="1"/>
+                <field name="has_excess" invisible="1"/>
+                <field name="version" invisible="1"/>
+            </xpath>
+
+            <!-- Indicador de re-proceso junto al titulo -->
+            <xpath expr="//h1" position="after">
+                <span class="badge o_prep_rework_version_badge" invisible="not is_rework">
+                    <i class="fa fa-refresh"/> RE-PROCESO
+                    <field name="version" widget="badge"
+                           decoration-danger="version &gt; 2"
+                           decoration-warning="version == 2"/>
+                </span>
+            </xpath>
+
+            <!-- Smart button para ver los repasos asociados -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_reviews" type="object"
+                        class="oe_stat_button" icon="fa-tasks">
+                    <field name="reviews_count" widget="statinfo" string="Repasos"/>
+                </button>
+            </xpath>
+
+            <!-- Boton 'Gestionar Excedentes' en el header (antes del statusbar) -->
+            <xpath expr="//field[@name='stage_id']" position="before">
+                <button name="action_gestionar_excedentes" type="object"
+                        string="Gestionar Excedentes"
+                        invisible="not (is_rework and state == 'in_progress' and has_excess)"/>
+            </xpath>
+
+            <!-- Override del readonly de line_ids: permitir edicion durante rework -->
+            <xpath expr="//field[@name='line_ids']" position="attributes">
+                <attribute name="readonly">state in ('done', 'cancelled') or (state not in ('draft', 'assigned') and not can_edit_in_progress and not is_rework)</attribute>
+            </xpath>
+
+            <!-- Pestaña de historial de modificaciones (visible siempre) -->
+            <xpath expr="//page[@name='lines']" position="after">
+                <page string="Modificaciones" name="rework_modifications">
+                    <field name="modification_log_ids" readonly="1">
+                        <list>
+                            <field name="datetime"/>
+                            <field name="action"/>
+                            <field name="user_id"/>
+                            <field name="authorized_by_id"/>
+                            <field name="review_id"/>
+                            <field name="reason" optional="show"/>
+                            <field name="detail" optional="show"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+
+            <!-- Pestaña con los repasos asociados (todos, por version) -->
+            <xpath expr="//page[@name='rework_modifications']" position="after">
+                <page string="Repasos" name="rework_reviews">
+                    <field name="review_ids" readonly="1">
+                        <list>
+                            <field name="name"/>
+                            <field name="version" widget="badge"
+                                   decoration-danger="version &gt; 2"
+                                   decoration-warning="version == 2"/>
+                            <field name="stage_id"/>
+                            <field name="state" column_invisible="1"/>
+                            <field name="user_id" optional="show"/>
+                            <field name="date_start" optional="show"/>
+                            <field name="date_end" optional="show"/>
+                            <field name="previous_review_id" optional="show"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- Form de linea: columna de ubicacion actual en los escaneos -->
+    <record id="view_preparation_stock_line_form_inherit_rework" model="ir.ui.view">
+        <field name="name">preparation.stock.line.form.rework</field>
+        <field name="model">preparation.stock.line</field>
+        <field name="inherit_id" ref="custom_preparation_stock.view_preparation_stock_line_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='location_id']" position="after">
+                <field name="current_location_id" readonly="1" optional="show"
+                       string="Ubicacion Actual"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Form de detalle de escaneo: ubicacion actual -->
+    <record id="view_preparation_stock_scan_line_form_inherit_rework" model="ir.ui.view">
+        <field name="name">preparation.stock.scan.line.form.rework</field>
+        <field name="model">preparation.stock.scan.line</field>
+        <field name="inherit_id" ref="custom_preparation_stock.view_preparation_stock_scan_line_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='location_id']" position="after">
+                <field name="current_location_id" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Lista: version con badge y resaltado de re-proceso -->
+    <record id="view_preparation_stock_list_inherit_rework" model="ir.ui.view">
+        <field name="name">preparation.stock.list.rework</field>
+        <field name="model">preparation.stock</field>
+        <field name="inherit_id" ref="custom_preparation_stock.view_preparation_stock_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='stage_id']" position="before">
+                <field name="version" widget="badge"
+                       decoration-danger="version &gt; 2"
+                       decoration-warning="version == 2"
+                       optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Busqueda: filtro re-proceso y agrupacion por version -->
+    <record id="view_preparation_stock_search_inherit_rework" model="ir.ui.view">
+        <field name="name">preparation.stock.search.rework</field>
+        <field name="model">preparation.stock</field>
+        <field name="inherit_id" ref="custom_preparation_stock.view_preparation_stock_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='filter_in_progress']" position="after">
+                <filter name="filter_rework" string="Re-proceso"
+                        domain="[('is_rework', '=', True)]"/>
+            </xpath>
+            <xpath expr="//group" position="inside">
+                <filter name="group_version" string="Version"
+                        context="{'group_by': 'version'}"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

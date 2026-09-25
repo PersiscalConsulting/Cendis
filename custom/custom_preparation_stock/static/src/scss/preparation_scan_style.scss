@@ -1,0 +1,523 @@
+﻿:root {
+    --wms-accent: #1971c2;
+    --wms-accent-strong: #1864ab;
+    --wms-accent-bg: #e7f5ff;
+    --wms-accent-border: #74c0fc;
+    --wms-accent-soft-border: rgba(25, 113, 194, 0.15);
+    --wms-success: #2b8a3e;
+    --wms-success-bg: #f4fbf6;
+    --wms-success-border: #69db7c;
+    --wms-danger: #c92a2a;
+    --wms-danger-bg: #fff5f5;
+    --wms-danger-border: #ffc9c9;
+    --wms-warning: #e8590c;
+    --wms-warning-bg: #fff4e6;
+    --wms-warning-border: #ffd8a8;
+    --wms-text: #212529;
+    --wms-text-strong: #343a40;
+    --wms-text-muted: #52606d;
+    --wms-border: #dee2e6;
+    --wms-border-light: #e3e6ea;
+    --wms-bg: #f5f6f8;
+    --wms-bg-light: #f8f9fa;
+    --wms-surface: #ffffff;
+    --wms-excess-bg: #fff4e6;
+    --wms-foreign-bg: #fff5f5;
+    --wms-shadow: rgba(0, 0, 0, 0.08);
+}
+
+.o_prep_stock_loading {
+    padding: 48px;
+    text-align: center;
+    font-size: 18px;
+    color: #666;
+}
+
+.o_prep_stock_container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    padding-bottom: 16px;
+    background: var(--wms-bg);
+
+    // Encabezado
+    .o_prep_stock_header {
+        background: var(--wms-surface);
+        border-bottom: 1px solid var(--wms-border-light);
+        padding: 12px 16px 8px;
+    }
+
+    .o_prep_stock_top_row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .o_prep_stock_back_btn {
+            padding-left: 0;
+            color: var(--wms-text-muted);
+            text-decoration: none;
+            white-space: nowrap;
+            flex-shrink: 0;
+
+            &:hover,
+            &:focus {
+                color: var(--wms-accent-strong);
+                text-decoration: none;
+            }
+        }
+
+        .o_prep_stock_title {
+            min-width: 0;
+
+            h2 {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin: 0;
+                font-size: 20px;
+                min-width: 0;
+                white-space: nowrap;
+                overflow: hidden;
+
+                > i {
+                    color: var(--wms-accent);
+                    font-size: 17px;
+                    flex-shrink: 0;
+                }
+            }
+
+            .o_prep_stock_name {
+                font-size: 12.5px;
+                font-weight: 600;
+                color: var(--wms-accent-strong);
+                background: var(--wms-accent-bg);
+                border: 1px solid var(--wms-accent-border);
+                border-radius: 999px;
+                padding: 1px 10px;
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+        }
+
+        .o_prep_stock_header_kpi {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 6px;
+            background: var(--wms-bg-light);
+            border: 1px solid var(--wms-border-light);
+            border-radius: 999px;
+            padding: 4px 14px;
+            white-space: nowrap;
+            flex-shrink: 0;
+
+            .o_prep_stock_header_kpi_caption {
+                font-size: 11px;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                font-weight: 600;
+                color: var(--wms-text-muted);
+            }
+
+            .o_prep_stock_header_kpi_value {
+                font-size: 16px;
+                font-weight: 700;
+                color: var(--wms-text-strong);
+                line-height: 1;
+
+                .o_prep_stock_header_kpi_uom {
+                    font-size: 12px;
+                    font-weight: 500;
+                    color: var(--wms-text-muted);
+                    margin-left: 4px;
+                }
+            }
+        }
+
+        .o_prep_stock_actions {
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+    }
+
+    .o_prep_stock_meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+
+        .o_prep_stock_meta_badge {
+            background: var(--wms-bg-light);
+            border: 1px solid var(--wms-border-light);
+            border-radius: 4px;
+            padding: 3px 10px;
+            font-size: 12.5px;
+            color: var(--wms-text-muted);
+        }
+
+        .o_prep_stock_admin_hint {
+            background: var(--wms-accent-bg);
+            border: 1px solid var(--wms-accent-border);
+            color: var(--wms-accent-strong);
+        }
+
+        .o_prep_stock_current_loc_badge {
+            background: var(--wms-success-bg);
+            border: 1px solid var(--wms-success-border);
+            color: var(--wms-success);
+            font-size: 13px;
+            padding: 4px 12px;
+            font-weight: 500;
+
+            strong {
+                font-weight: 700;
+            }
+        }
+
+        .o_prep_stock_no_loc_badge {
+            background: var(--wms-warning-bg);
+            border: 1px solid var(--wms-warning-border);
+            color: var(--wms-warning);
+            font-size: 13px;
+            padding: 4px 12px;
+        }
+
+        .o_prep_stock_meta_toggle {
+            padding: 0 6px;
+            font-size: 12.5px;
+            color: var(--wms-accent);
+            text-decoration: none;
+
+            &:hover,
+            &:focus {
+                color: var(--wms-accent-strong);
+                text-decoration: none;
+            }
+        }
+    }
+
+    .o_prep_stock_status_band {
+        .o_prep_stock_finished_banner {
+            margin-top: 10px;
+            background: var(--wms-bg-light);
+            border: 1px solid var(--wms-border);
+            color: var(--wms-text-muted);
+            border-radius: 6px;
+            padding: 10px 14px;
+        }
+
+        .o_prep_stock_message {
+            margin-top: 10px;
+            margin-bottom: 0;
+            padding: 8px 14px;
+        }
+    }
+
+    // Entrada de codigo
+    .o_prep_stock_input_row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        padding: 10px 16px;
+        background: linear-gradient(180deg, #ffffff 0%, #f6f9fb 100%);
+        border-bottom: 1px solid var(--wms-border-light);
+
+        .o_prep_stock_scanner_icon {
+            font-size: 19px;
+            color: var(--wms-accent);
+            background: var(--wms-accent-bg);
+            border: 1px solid var(--wms-accent-border);
+            border-radius: 8px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .form-control:focus {
+            border-color: var(--wms-accent-border);
+            box-shadow: 0 0 0 0.2rem var(--wms-accent-soft-border);
+        }
+    }
+
+    // Paneles laterales
+    .o_prep_stock_panels {
+        display: grid;
+        grid-template-columns: minmax(230px, 28%) 1fr;
+        grid-template-rows: minmax(0, 1fr);
+        gap: 12px;
+        padding: 12px 16px;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    @media (max-width: 768px) {
+        .o_prep_stock_top_row {
+            flex-wrap: wrap;
+
+            .o_prep_stock_title {
+                order: -1;
+                width: 100%;
+
+                h2 {
+                    font-size: 17px;
+                }
+            }
+
+            .o_prep_stock_actions {
+                width: 100%;
+                flex-wrap: wrap;
+                gap: 6px;
+                margin-left: 0;
+            }
+        }
+
+        .o_prep_stock_panels {
+            grid-template-columns: 1fr;
+            grid-template-rows: minmax(0, auto);
+            overflow: auto;
+        }
+    }
+
+    .o_prep_stock_lines_panel,
+    .o_prep_stock_detail_panel {
+        background: var(--wms-surface);
+        border: 1px solid var(--wms-border-light);
+        border-radius: 8px;
+        padding: 12px 12px 40px;
+        min-height: 0;
+        overflow-y: auto;
+
+        h3 {
+            font-size: 15px;
+            margin-bottom: 10px;
+            color: var(--wms-text-strong);
+        }
+    }
+
+    .o_prep_stock_empty {
+        color: var(--wms-text-muted);
+        text-align: center;
+        padding: 24px 8px;
+    }
+
+    .o_prep_stock_line_card {
+        border: 1px solid var(--wms-border-light);
+        border-radius: 8px;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        cursor: pointer;
+        transition: box-shadow .12s ease, border-color .12s ease;
+
+        &:hover { box-shadow: 0 1px 4px rgba(0, 0, 0, .08); }
+
+        &:focus-visible {
+            outline: 2px solid var(--wms-accent);
+            outline-offset: 2px;
+        }
+
+        &.selected {
+            border-color: var(--wms-accent);
+            box-shadow: 0 0 0 2px var(--wms-accent-soft-border);
+        }
+
+        &.state_done {
+            background-color: #f6fdf8;
+        }
+        &.state_in_progress {
+            background-color: #fffbf0;
+        }
+        &.state_short {
+            background-color: #fff5f5;
+        }
+        &.state_pending {
+            background-color: #f8f9fa;
+        }
+
+        .o_prep_stock_product {
+            font-weight: 600;
+            color: var(--wms-text);
+        }
+
+        .o_prep_stock_qty_row {
+            font-size: 14px;
+            margin-top: 2px;
+
+            .o_prep_stock_remaining {
+                color: var(--wms-warning);
+                font-size: 13px;
+            }
+        }
+
+        .o_prep_stock_loc_row {
+            font-size: 13px;
+            color: var(--wms-accent-strong);
+            margin-top: 4px;
+        }
+    }
+
+    .o_prep_stock_loc_badge {
+        display: inline-block;
+        background: var(--wms-accent-bg);
+        border: 1px solid var(--wms-accent-border);
+        color: var(--wms-accent-strong);
+        border-radius: 10px;
+        font-size: 11.5px;
+        padding: 0 8px;
+        margin-right: 4px;
+        white-space: nowrap;
+    }
+
+    // ---- Chips (meta pills) ----
+    .o_prep_stock_chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.5;
+        white-space: nowrap;
+        background: var(--wms-bg-light);
+        border: 1px solid var(--wms-border-light);
+        color: var(--wms-text-strong);
+
+        i {
+            font-size: 11px;
+            color: var(--wms-text-muted);
+        }
+
+        &.o_prep_stock_chip_accent {
+            background: var(--wms-accent-bg);
+            border-color: var(--wms-accent-border);
+            color: var(--wms-accent-strong);
+
+            i {
+                color: var(--wms-accent);
+            }
+        }
+
+        &.o_prep_stock_chip_sm {
+            gap: 4px;
+            padding: 1px 8px;
+            font-size: 11px;
+
+            i {
+                font-size: 10px;
+            }
+        }
+
+        &.o_prep_stock_chip_success {
+            background: var(--wms-success-bg);
+            border-color: var(--wms-success-border);
+            color: var(--wms-success);
+
+            i {
+                color: var(--wms-success);
+            }
+        }
+
+        &.o_prep_stock_chip_warning {
+            background: var(--wms-warning-bg);
+            border-color: var(--wms-warning-border);
+            color: var(--wms-warning);
+
+            i {
+                color: var(--wms-warning);
+            }
+        }
+
+        &.o_prep_stock_chip_danger {
+            background: var(--wms-danger-bg);
+            border-color: var(--wms-danger-border);
+            color: var(--wms-danger);
+
+            i {
+                color: var(--wms-danger);
+            }
+        }
+    }
+
+    // Panel derecho
+    .o_prep_stock_summary_grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-bottom: 12px;
+
+        .card {
+            border-top: 3px solid var(--wms-accent-border);
+        }
+
+        .o_prep_stock_kpi_label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+            font-weight: 600;
+            color: var(--wms-text-muted);
+        }
+
+        .o_prep_stock_kpi_value {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--wms-accent);
+        }
+    }
+
+    .o_prep_stock_scan_table {
+        th {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--wms-text-muted);
+            border-bottom: 1px solid #dee2e6 !important;
+        }
+
+        td { vertical-align: middle; }
+
+        .o_prep_stock_qty_input {
+            max-width: 90px;
+            display: inline-block;
+        }
+    }
+
+    // Excesos de escaneo
+    .o_prep_stock_excess_row {
+        background-color: var(--wms-excess-bg) !important;
+
+        td { color: var(--wms-danger); }
+    }
+
+    .o_prep_stock_excess {
+        color: var(--wms-danger) !important;
+        background-color: var(--wms-danger-bg) !important;
+        font-weight: 700;
+    }
+
+    .o_prep_stock_excess_text {
+        color: var(--wms-danger);
+        font-weight: 700;
+    }
+
+    // Mercaderia vencida
+    .o_prep_stock_expired_row {
+        background-color: var(--wms-foreign-bg) !important;
+
+        td { color: var(--wms-danger); }
+    }
+}
+
+.o_prep_stock_message {
+    .o_prep_stock_message_text {
+        line-height: 1.4;
+    }
+
+    .o_prep_stock_message_close {
+        font-size: 12px;
+        margin-left: 10px;
+        flex-shrink: 0;
+    }
+}

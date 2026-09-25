@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_preparation_stock_modification_log_user,preparation.stock.modification.log user,model_preparation_stock_modification_log,base.group_user,1,1,1,1
+access_stock_rework_auth_wizard_user,stock.rework.auth.wizard user,model_stock_rework_auth_wizard,base.group_user,1,1,1,1
+access_preparation_rework_excess_wizard_user,preparation.rework.excess.wizard user,model_preparation_rework_excess_wizard,base.group_user,1,1,1,1
+access_preparation_rework_excess_line_user,preparation.rework.excess.line user,model_preparation_rework_excess_line,base.group_user,1,1,1,1

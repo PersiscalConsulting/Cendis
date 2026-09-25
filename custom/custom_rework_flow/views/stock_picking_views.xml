@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Hereda el form del stock.picking de salida: muestra boton 'Devolver a
+         Preparacion' solo para pickings generados desde repasos que aun no
+         fueron validados. -->
+    <record id="view_stock_picking_form_inherit_rework" model="ir.ui.view">
+        <field name="name">stock.picking.form.rework</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//header" position="inside">
+                <button name="action_return_to_preparation_picking"
+                        type="object" string="Devolver a Preparacion"
+                        invisible="not is_rework_eligible"
+                        confirm="Se cancelara este picking y las preparaciones
+                                  volveran a En Proceso. Desea continuar?"/>
+            </xpath>
+
+            <xpath expr="//field[@name='user_id']" position="after">
+                <field name="is_rework_eligible" readonly="1" invisible="1"/>
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>

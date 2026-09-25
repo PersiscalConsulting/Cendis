@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_review_stock_config_form" model="ir.ui.view">
+        <field name="name">review.stock.config.form</field>
+        <field name="model">review.stock.config</field>
+        <field name="arch" type="xml">
+            <form string="Configuracion de Repasos de Stock Picking">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Repasos de Stock Picking</h1>
+                        <h2>Configuracion</h2>
+                    </div>
+                    <div class="alert alert-info" role="alert">
+                        Los cambios se aplican en vivo, sin importar el estado de los repasos.
+                        En los selectores de propietarios: un selector VACIO significa que el
+                        comportamiento aplica a TODOS los propietarios.
+                    </div>
+                    <group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="picking_type_id"/>
+                            <field name="exit_location_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Modo de Repaso" name="review_mode">
+                            <group>
+                                <group string="Modo ciego / visual">
+                                    <field name="blind_mode"
+                                           help="En modo ciego no se pueden desplegar las lineas de detalle (review.move.line), solo se ven las agrupadas por producto."/>
+                                    <field name="blind_mode_owner_ids" widget="many2many_tags"
+                                           placeholder="Vacio = todos los propietarios"/>
+                                </group>
+                                <group string="Repaso manual">
+                                    <field name="allow_manual_review"
+                                           help="Habilita el modo manual del repaso: ingreso de cantidades, creacion de lineas y paquetizacion."/>
+                                    <field name="manual_review_owner_ids" widget="many2many_tags"
+                                           placeholder="Vacio = todos los propietarios"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Lectura de Codigo de barras" name="barcode_reading">
+                            <group>
+                                <group string="Conteos manuales">
+                                    <field name="allow_manual_counts"
+                                           help="Habilita el campo/boton de conteo (+1 o cantidad) en las lineas de la vista de repaso para registrar la cantidad repasada manualmente."/>
+                                    <field name="manual_counts_owner_ids" widget="many2many_tags"
+                                           placeholder="Vacio = todos los propietarios"/>
+                                </group>
+                                <group string="Desempaquetar">
+                                    <field name="allow_unpackaging"
+                                           help="Habilita desempaquetar: el boton 'Desempaquetar todo' del paquete y la eliminacion de una linea individual del paquete."/>
+                                    <field name="unpackaging_owner_ids" widget="many2many_tags"
+                                           placeholder="Vacio = todos los propietarios"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Validaciones" name="validations">
+                            <group>
+                                <group string="Control de lotes duplicados">
+                                    <field name="allow_duplicate_lots"
+                                           help="Si esta deshabilitado, no se permite escanear dos veces el mismo lote del mismo producto."/>
+                                    <field name="duplicate_lots_owner_ids" widget="many2many_tags"
+                                           placeholder="Vacio = todos los propietarios"/>
+                                </group>
+                                <group string="Cantidades excedentes y faltantes">
+                                    <field name="control_qty_differences"
+                                           help="Si esta activado, bloquea escanear excesos y Finalizar con diferencias. Si esta desactivado, los excesos se permiten y al Finalizar se muestra una advertencia."/>
+                                    <field name="control_qty_differences_owner_ids" widget="many2many_tags"
+                                           placeholder="Vacio = todos los propietarios"/>
+                                </group>
+                                <group string="Control de existencias">
+                                    <field name="control_stock_availability"
+                                           help="No se permite Finalizar si se escanearon mas productos de los que hay en stock."/>
+                                    <field name="control_stock_availability_owner_ids" widget="many2many_tags"
+                                           placeholder="Vacio = todos los propietarios"/>
+                                </group>
+                                <group string="Escaneo fuera de la preparacion">
+                                    <field name="block_foreign_scans"
+                                           help="Si esta activado, no se permite escanear lotes que no fueron preparados en la preparacion de origen. Si esta desactivado, esos escaneos se permiten y se marcan en rojo."/>
+                                    <field name="block_foreign_scans_owner_ids" widget="many2many_tags"
+                                           placeholder="Vacio = todos los propietarios"/>
+                                </group>
+                                <group string="Finalizacion sin paquetizar">
+                                    <field name="allow_finish_unpacked_owner_ids" widget="many2many_tags"
+                                           placeholder="Vacio = nadie puede Finalizar sin paquetizar"
+                                           help="Solo estos propietarios quedan EXCEPTUADOS de la restriccion. Por defecto nadie puede Finalizar con productos sin paquetizar."/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_review_stock_config" model="ir.actions.act_window">
+        <field name="name">Repaso de Stock Picking</field>
+        <field name="res_model">review.stock.config</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Configure los Repasos de Stock Picking</p>
+            <p>Checks por funcionalidad con selectores de propietarios (vacio = todos).</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_review_stock_config"
+              name="Repaso de Stock Picking"
+              parent="stock.menu_stock_config_settings"
+              action="action_review_stock_config"
+              sequence="70"/>
+
+</odoo>

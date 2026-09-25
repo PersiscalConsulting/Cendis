@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_preparation_stock_config_form" model="ir.ui.view">
+        <field name="name">preparation.stock.config.form</field>
+        <field name="model">preparation.stock.config</field>
+        <field name="arch" type="xml">
+            <form string="Configuracion de Preparaciones de Stock">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Preparaciones de Stock</h1>
+                        <h2>Configuracion</h2>
+                    </div>
+                    <div class="alert alert-info" role="alert">
+                        Los cambios se aplican en vivo, sin importar el estado de las preparaciones.
+                        En los selectores de propietarios: un selector VACIO significa que el
+                        comportamiento aplica a TODOS los propietarios.
+                    </div>
+                    <group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="default_location_dest_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Escaneo" name="scan_behavior">
+                            <group>
+                                <group string="Ingreso manual de cantidad">
+                                    <field name="allow_manual_qty"/>
+                                    <field name="manual_qty_owner_ids" widget="many2many_tags"
+                                           placeholder="Vacio = todos los propietarios"/>
+                                </group>
+                                <group string="Eliminacion de lineas escaneadas">
+                                    <field name="allow_delete_scan"/>
+                                    <field name="delete_scan_owner_ids" widget="many2many_tags"
+                                           placeholder="Vacio = todos los propietarios"/>
+                                </group>
+                                <group string="Control de lote duplicado">
+                                    <field name="prevent_duplicate_lot"/>
+                                    <field name="duplicate_lot_owner_ids" widget="many2many_tags"
+                                           placeholder="Vacio = todos los propietarios"
+                                           help="Rechaza si el mismo lote del mismo producto ya fue escaneado."/>
+                                </group>
+                                <group string="Excesos/faltantes de escaneos">
+                                    <field name="allow_over_scan"
+                                           help="Permite escanear mas o menos de lo demandado. Los excesos/faltantes solo se controlan al validar: si esta deshabilitado se exige coincidencia exacta."/>
+                                </group>
+                                <group string="Control de mercaderia vencida">
+                                    <field name="control_expired"
+                                           help="Al escanear un lote vencido se marca en rojo con icono de advertencia. Al validar se pide confirmacion."/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Validaciones" name="validations">
+                            <group>
+                                <group string="Control de existencias (bloqueante)">
+                                    <field name="enable_quant_control"/>
+                                    <field name="quant_control_owner_ids" widget="many2many_tags"
+                                           placeholder="Vacio = todos los propietarios"
+                                           help="Rechaza el escaneo si la cantidad acumulada supera las existencias del propietario en la ubicacion."/>
+                                </group>
+                                <group string="Bloqueo de validacion">
+                                    <field name="block_validate_over_under"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Sugerencia de Ubicaciones" name="location_suggestion">
+                            <group>
+                                <group string="Sugerencia FEFO automatica">
+                                    <field name="enable_location_suggestion"/>
+                                    <field name="location_suggestion_owner_ids" widget="many2many_tags"
+                                           placeholder="Vacio = todos los propietarios"
+                                           help="Calcula sugerencias FEFO al cargar cada producto; boton Recalcular disponible."/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Administrativo" name="admin_edition">
+                            <group>
+                                <group string="Edicion en proceso y para validar">
+                                    <field name="edit_demand_in_progress"/>
+                                    <field name="edit_demand_owner_ids" widget="many2many_tags"
+                                           placeholder="Vacio = todos los propietarios"
+                                           help="Permite a usuarios administrativos editar cantidades demandadas y ubicaciones con la preparacion En Proceso o Para Validar."/>
+                                </group>
+                                <group string="Creacion manual de lineas de escaneo (popup)">
+                                    <field name="allow_manual_scan_create"/>
+                                    <field name="manual_scan_create_owner_ids" widget="many2many_tags"
+                                           placeholder="Vacio = todos los propietarios"/>
+                                </group>
+                                <group string="Reserva de mercaderia">
+                                    <field name="enable_reservation"
+                                           help="Bloquea que otros operadores usen el mismo producto/lote mientras se esta preparando esta operacion. La reserva persiste hasta generar la expedicion."/>
+                                    <field name="reservation_owner_ids" widget="many2many_tags"
+                                           placeholder="Vacio = todos los propietarios"/>
+                                </group>
+
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_preparation_stock_config" model="ir.actions.act_window">
+        <field name="name">Preparación de Stock</field>
+        <field name="res_model">preparation.stock.config</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Configure las Preparaciones de Stock</p>
+            <p>Checks por funcionalidad con selectores de propietarios (vacio = todos).</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_preparation_stock_config"
+              name="Preparación de Stock"
+              parent="stock.menu_stock_config_settings"
+              action="action_preparation_stock_config"
+              sequence="60"/>
+
+</odoo>

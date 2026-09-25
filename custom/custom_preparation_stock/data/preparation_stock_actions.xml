@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Accion client OWL de escaneo -->
+    <record id="action_preparation_scan_owl" model="ir.actions.client">
+        <field name="name">Escanear Preparación</field>
+        <field name="tag">custom_preparation_stock.preparation_scan_action</field>
+    </record>
+
+    <!-- Server action de validacion: EDITABLE desde Odoo web.
+         Nombre fijado por negocio: INVENTARIO PREPARACION: validar preparacion -->
+    <data noupdate="0">
+        <record id="action_validate_preparation" model="ir.actions.server">
+            <field name="name">INVENTARIO PREPARACIÓN: validar preparacion</field>
+            <field name="model_id" ref="model_preparation_stock"/>
+            <field name="binding_model_id" ref="model_preparation_stock"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+if not records and context.get('active_ids'):
+    records = env['preparation.stock'].browse(context['active_ids'])
+elif not records and context.get('active_id'):
+    records = env['preparation.stock'].browse(context['active_id'])
+
+# 1. VALIDACION PREVIA DE CONFIGURACION (Fail-Fast)
+# -------------------------------------------------------------------
+done_stage = env['preparation.stock.stage'].search([('state', '=', 'done')], limit=1)
+if not done_stage:
+    raise UserError('No existe una etapa "Hecho" configurada.')
+
+now = datetime.datetime.now()
+eps = 0.0001
+StockMove = env['stock.move'].sudo()
+has_picked = 'picked' in StockMove._fields
+
+# 2. PROCESAMIENTO POR PREPARACION
+# -------------------------------------------------------------------
+for prep in records:
+    if prep.state != 'to_validate':
+        raise UserError('La preparacion debe estar en estado "Para Validar".')
+    if not prep.line_ids:
+        raise UserError('La preparacion no tiene lineas.')
+
+    cfg = env['preparation.stock.config']._get_config(prep.company_id)
+    dest = prep.location_dest_id or cfg.default_location_dest_id
+    if not dest:
+        raise UserError('Defina la ubicacion de separacion en la preparacion o en la configuracion.')
+
+    # 2a. VERIFICAR CANTIDADES (respeta allow_over_scan)
+    # -------------------------------------------------------------------
+    # Validacion universal: exigir que las lineas con demanda tengan
+    # al menos algo escaneado, sin importar allow_over_scan.
+    no_scan_diffs = []
+    for line in prep.line_ids:
+        if abs(line.qty_demanded) > eps and abs(line.qty_scanned) <= eps:
+            no_scan_diffs.append(
+                '%s: demandado %s, escaneado 0'
+                % (line.product_id.display_name, line.qty_demanded)
+            )
+    if no_scan_diffs:
+        raise UserError(
+            'Existen lineas con demanda pendiente sin escanear.\n'
+            + '\n'.join(no_scan_diffs)
+            + '\n\nEscanee las cantidades antes de validar.'
+        )
+
+    diffs = []
+    for line in prep.line_ids:
+        # En re-proceso el stock ya retirado de separacion (excedente movido
+        # por el wizard) queda reflejado en los escaneos reducidos: qty_scanned
+        # ya cuenta solo el stock que resta en separacion.
+        diff = line.qty_demanded - line.qty_scanned
+        if abs(diff) > eps:
+            diffs.append(
+                '%s: demandado %s, escaneado %s (diferencia: %s)'
+                % (line.product_id.display_name,
+                   line.qty_demanded, line.qty_scanned, round(diff, 4))
+            )
+    if diffs and (cfg.block_validate_over_under or not cfg.allow_over_scan):
+        raise UserError(
+            'Las cantidades demandadas y escaneadas no coinciden.\n'
+            + '\n'.join(diffs)
+            + '\n\nCorrija las cantidades antes de validar.'
+        )
+
+    # 2b. CREAR MOVES AGRUPADOS POR LINEA x UBICACION
+    # -------------------------------------------------------------------
+    # En re-proceso SOLO se mueven los escaneos que aun no tienen stock.move
+    # (los agregados despues de la reapertura). Los ya movidos a separacion
+    # no se re-mueven: quedan donde estan.
+    moves_to_process = StockMove
+    scan_updates = {}
+
+    for line in prep.line_ids:
+        scans = line.scan_line_ids.filtered(
+            lambda s: not s.stock_move_id
+        ).sorted('id')
+        if not scans:
+            continue
+
+        loc_groups = {}
+        for s in scans:
+            loc_groups.setdefault(s.location_id.id, []).append(s)
+
+        for loc_id, loc_scans in loc_groups.items():
+            move_lines_vals = []
+            for s in loc_scans:
+                ml_vals = {
+                    'product_id': line.product_id.id,
+                    'quantity': s.qty,
+                    'product_uom_id': line.uom_id.id,
+                    'location_id': loc_id,
+                    'location_dest_id': dest.id,
+                    'company_id': prep.company_id.id,
+                    'reference': prep.name,
+                }
+                if s.lot_id:
+                    ml_vals['lot_id'] = s.lot_id.id
+                if prep.owner_id:
+                    ml_vals['owner_id'] = prep.owner_id.id
+                if s.quant_id and s.quant_id.package_id:
+                    ml_vals['package_id'] = s.quant_id.package_id.id
+                elif s.package_id:
+                    ml_vals['package_id'] = s.package_id.id
+                move_lines_vals.append((0, 0, ml_vals))
+
+            move_vals = {
+                'name': '%s - %s' % (prep.name, line.product_id.display_name),
+                'reference': prep.name,
+                'origin': prep.origin_doc or prep.name,
+                'product_id': line.product_id.id,
+                'product_uom_qty': sum(s.qty for s in loc_scans),
+                'product_uom': line.uom_id.id,
+                'location_id': loc_id,
+                'location_dest_id': dest.id,
+                'company_id': prep.company_id.id,
+                'move_line_ids': move_lines_vals,
+            }
+            if has_picked:
+                move_vals['picked'] = True
+
+            move = StockMove.create(move_vals)
+            moves_to_process |= move
+            scan_updates[move.id] = [s.id for s in loc_scans]
+
+    # 2c. EJECUTAR MOVIMIENTOS EN LOTE (Optimizacion critica)
+    # -------------------------------------------------------------------
+    if moves_to_process:
+        moves_to_process._action_confirm()
+        moves_to_process._action_assign()
+        moves_to_process._action_done()
+
+    # 2d. VINCULAR SCAN LINES CON SUS MOVES Y MOVE LINES (escritura agrupada)
+    # -------------------------------------------------------------------
+    # Los stock.move.line se crean en el mismo orden que los escaneos de cada
+    # move, por lo que el espejo 1:1 se resuelve haciendo zip por orden y
+    # validando que productos/lotes/ubicaciones coincidan.
+    ScanModel = env['preparation.stock.scan.line']
+    for move_id, scan_ids in scan_updates.items():
+        move = StockMove.browse(move_id)
+        scans = ScanModel.browse(scan_ids).sorted('id')
+        move_lines = move.move_line_ids.sorted('id')
+        for scan, ml in zip(scans, move_lines):
+            if (ml.product_id.id == scan.product_id.id
+                    and (ml.lot_id.id or False) == (scan.lot_id.id or False)
+                    and (ml.location_id.id or False) == (scan.location_id.id or False)):
+                scan.sudo().write({
+                    'stock_move_id': move_id,
+                    'stock_move_line_id': ml.id,
+                })
+
+    # 3. GENERAR REPASO AUTOMATICAMENTE (custom_review_stock_picking)
+    # -------------------------------------------------------------------
+    initial_stage = env['review.stage'].search([('is_initial', '=', True)], limit=1)
+    if not initial_stage:
+        raise UserError('No existe una etapa "Disponible" configurada para el repaso.')
+
+    # Multiples repasos por preparacion: solo se bloquea si existe un repaso
+    # ACTIVO (estado no-modificado y no-cancelado). En re-proceso el repaso
+    # anterior queda bajo la etapa "Modificado" y se permite generar uno nuevo.
+    active_review = env['review.stock.picking'].search([
+        ('preparation_id', '=', prep.id),
+        ('state', 'not in', ['modified', 'cancelled']),
+    ], order='name desc', limit=1)
+    if active_review:
+        raise UserError(
+            'La preparacion %s ya tiene un repaso activo (%s). '
+            'Vuelvalo a la etapa "Modificado" antes de revalidar.'
+            % (prep.name, active_review.name))
+
+    previous_reviews = env['review.stock.picking'].search(
+        [('preparation_id', '=', prep.id)], order='id desc', limit=1)
+    prev_review = previous_reviews[:1] if previous_reviews else False
+    version = (prev_review.version or 0) + 1 if prev_review else 1
+
+    review_moves_vals = []
+    for line in prep.line_ids:
+        scans = line.scan_line_ids.filtered(lambda s: s.stock_move_id).sorted('id')
+        if not scans:
+            continue
+        move_line_vals = []
+        for s in scans:
+            ml_vals = {
+                'owner_id': prep.owner_id.id if prep.owner_id else False,
+                'lot_id': s.lot_id.id if s.lot_id else False,
+                'qty': s.qty,
+            }
+            if s.stock_move_line_id:
+                ml_vals['stock_move_line_id'] = s.stock_move_line_id.id
+            move_line_vals.append((0, 0, ml_vals))
+        review_moves_vals.append((0, 0, {
+            'stock_move_id': scans[0].stock_move_id.id,
+            'product_id': line.product_id.id,
+            'qty_preparation': line.qty_demanded,
+            'move_line_ids': move_line_vals,
+        }))
+
+    review_vals = {
+        'name': env['ir.sequence'].next_by_code('review.stock.picking'),
+        'preparation_id': prep.id,
+        'company_id': prep.company_id.id,
+        'user_id': prep.user_id.id,
+        'owner_id': prep.owner_id.id,
+        'partner_id': prep.partner_id.id,
+        'stage_id': initial_stage.id,
+        'move_ids': review_moves_vals,
+    }
+    if prev_review:
+        review_vals['version'] = version
+        review_vals['previous_review_id'] = prev_review.id
+
+    new_review = env['review.stock.picking'].with_context(
+        review_auto_create=True).create(review_vals)
+
+    # Heredar las cantidades ya repasadas del repaso anterior como punto de
+    # partida (match por producto + lote), para facilitar el re-repaso.
+    if prev_review:
+        new_review.with_context(review_auto_create=True)._inherit_previous_reviewed_qty(prev_review)
+
+    # Log de la revalidacion en el historial de modificaciones de la preparacion.
+    prep._log_rework_event(
+        'validated',
+        review_id=new_review.id,
+        detail='Preparacion revalidada: repaso creado (version %s).' % version,
+    )
+
+    # 4. CAMBIAR A ETAPA HECHO
+    # -------------------------------------------------------------------
+    prep.write({
+        'stage_id': done_stage.id,
+        'date_end': now,
+    })
+    prep.message_post(
+        body='Preparacion validada: los movimientos de stock fueron ejecutados '
+             'y la preparacion paso al estado "Hecho".'
+    )
+]]></field>
+        </record>
+    </data>
+
+</odoo>

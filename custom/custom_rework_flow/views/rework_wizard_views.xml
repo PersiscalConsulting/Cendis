@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ================================================================== -->
+    <!-- WIZARD DE AUTORIZACION (stock.rework.auth.wizard)                  -->
+    <!-- ================================================================== -->
+    <record id="view_stock_rework_auth_wizard_form" model="ir.ui.view">
+        <field name="name">stock.rework.auth.wizard.form</field>
+        <field name="model">stock.rework.auth.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Autorizacion para Volver a Preparar">
+                <group>
+                    <group invisible="origin != 'review'">
+                        <field name="preparation_id"/>
+                        <field name="review_id"/>
+                    </group>
+                    <group invisible="origin != 'picking'">
+                        <field name="preparation_id"/>
+                        <field name="picking_id"/>
+                    </group>
+                </group>
+                <separator string="Autorizacion del usuario"/>
+                <group>
+                    <field name="username" placeholder="Nombre de usuario (login)"/>
+                    <field name="pin" password="True"
+                           placeholder="PIN de autorizacion del usuario"/>
+                </group>
+                <group>
+                    <field name="reason"
+                           placeholder="Motivo: por que es necesario volver a preparar..."/>
+                </group>
+                <footer>
+                    <button name="confirm" string="Confirmar y Volver"
+                            class="btn-primary" type="object"/>
+                    <button string="Cancelar" class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- ================================================================== -->
+    <!-- WIZARD DE EXCEDENTES (preparation.rework.excess.wizard)            -->
+    <!-- ================================================================== -->
+    <record id="view_preparation_rework_excess_wizard_form" model="ir.ui.view">
+        <field name="name">preparation.rework.excess.wizard.form</field>
+        <field name="model">preparation.rework.excess.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Gestionar Excedentes">
+                <p class="text-info">
+                    El stock indicado sera retirado de la ubicacion de
+                    separacion y trasladado a la ubicacion destino elegida.
+                    Los escaneos correspondientes se ajustaran.
+                </p>
+                <group>
+                    <field name="preparation_id"/>
+                </group>
+                <field name="line_ids" options="{'no_create': True}">
+                    <list string="Excedentes" editable="bottom">
+                        <field name="product_id" readonly="1"/>
+                        <field name="qty_scanned" readonly="1"/>
+                        <field name="qty_demanded" readonly="1"/>
+                        <field name="qty_to_remove"/>
+                        <field name="location_dest_id"/>
+                        <field name="package_dest_id" options="{'no_create': True}"/>
+                        <field name="create_package"/>
+                    </list>
+                </field>
+                <footer>
+                    <button name="confirm" string="Procesar Excedentes"
+                            class="btn-primary" type="object"/>
+                    <button string="Cancelar" class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

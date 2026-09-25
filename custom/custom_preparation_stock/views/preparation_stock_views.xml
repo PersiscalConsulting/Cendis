@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_preparation_stock_list" model="ir.ui.view">
+        <field name="name">preparation.stock.list</field>
+        <field name="model">preparation.stock</field>
+        <field name="arch" type="xml">
+            <list string="Preparaciones de Stock">
+                <field name="name"/>
+                <field name="owner_id"/>
+                <field name="partner_short_name" string="Cliente/Destino"/>
+                <field name="origin_doc"/>
+                <field name="user_id"/>
+                <field name="date_start"/>
+                <field name="stage_id" widget="badge"
+                       decoration-muted="state == 'draft'"
+                       decoration-info="state == 'assigned'"
+                       decoration-warning="state in ('in_progress', 'to_validate')"
+                       decoration-success="state == 'done'"
+                       decoration-danger="state == 'cancelled'"/>
+                <field name="location_dest_id" optional="hide"/>
+                <field name="state" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_preparation_stock_form" model="ir.ui.view">
+        <field name="name">preparation.stock.form</field>
+        <field name="model">preparation.stock</field>
+        <field name="arch" type="xml">
+            <form string="Preparacion de Stock">
+                <header>
+                    <button name="action_mark_in_progress" type="object"
+                            string="Marcar como por realizar" class="oe_highlight"
+                            invisible="state != 'assigned'"/>
+                    <button name="action_open_scan" type="object"
+                            string="Escanear" class="oe_highlight"
+                            invisible="state not in ('assigned', 'in_progress', 'to_validate')"/>
+                    <button name="action_mark_to_validate" type="object"
+                            string="Marcar como realizado"
+                            confirm="Se revisaran las cantidades escaneadas y la preparacion pasara a Para Validar para su validacion final. Desea continuar?"
+                            invisible="state != 'in_progress'"/>
+                    <button name="%(action_validate_preparation)d" type="action"
+                            string="Validar" class="oe_highlight"
+                            confirm="Se ejecutaran los movimientos de stock. Desea continuar?"
+                            invisible="state != 'to_validate'"/>
+                    <button name="action_cancel" type="object" string="Cancelar"
+                            confirm="La preparacion pasara a estado Cancelado. Desea continuar?"
+                            invisible="state in ('done', 'cancelled')"/>
+                    <button name="action_recalculate_locations" type="object"
+                            string="Recalcular Ubicaciones"
+                            invisible="state not in ('draft', 'assigned')"/>
+                    <field name="stage_id" widget="statusbar"
+                           options="{'clickable': False}"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="toggle_active" type="object"
+                                class="oe_stat_button" icon="fa-archive"
+                                groups="base.group_system">
+                            <field name="active" widget="boolean_button"
+                                   options="{'terminology': 'archive'}"/>
+                        </button>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="owner_id" readonly="state != 'draft'"/>
+                            <field name="partner_id" readonly="state != 'draft'"
+                                   domain="[('parent_id', '=', owner_id)]"/>
+                            <field name="user_id"/>
+                            <field name="origin_doc" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="location_dest_id" readonly="state in ('done', 'cancelled') or (state not in ('draft', 'assigned') and not can_edit_in_progress)"/>
+                            <field name="current_scan_location_id" readonly="1" invisible="state == 'draft'"/>
+                            <field name="scanned_location_ids" widget="many2many_tags"
+                                   readonly="1" invisible="state == 'draft'"/>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="can_edit_in_progress" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Lineas Demandadas" name="lines">
+                            <field name="line_ids"
+                                   readonly="state in ('done', 'cancelled') or (state not in ('draft', 'assigned') and not can_edit_in_progress)">
+                                <list string="Lineas" editable="bottom">
+                                    <button name="action_view_line_form"
+                                            type="object" string="Ver"
+                                            icon="fa-external-link"
+                                            class="btn-link"/>
+                                    <field name="product_id" readonly="has_scans"
+                                           domain="[('qty_available', '>', 0), ('stock_quant_ids', 'any', [('owner_id', '=', parent.owner_id), ('quantity', '>', 0)])]"/>
+                                    <field name="qty_demanded"/>
+                                    <field name="uom_id" readonly="1"/>
+                                    <field name="qty_scanned" readonly="1"/>
+                                    <field name="remaining_qty" readonly="1" optional="show"/>
+                                    <field name="total_weight" readonly="1" optional="show"/>
+                                    <field name="state_line" readonly="1"
+                                           optional="hide"
+                                           decoration-success="state_line == 'done'"
+                                           decoration-warning="state_line == 'in_progress'"
+                                           decoration-danger="state_line == 'short'"
+                                           decoration-muted="state_line == 'pending'"/>
+                                    <field name="location_ids" widget="many2many_tags"
+                                           domain="[('usage', '=', 'internal'), ('quant_ids', 'any', [('owner_id', '=', parent.owner_id), ('quantity', '>', 0), ('product_id', '=', product_id)])]"/>
+                                    <field name="suggested_location_ids" widget="many2many_tags"
+                                           readonly="1" optional="show"/>
+                                    <field name="has_scans" invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_preparation_stock_line_form" model="ir.ui.view">
+        <field name="name">preparation.stock.line.form</field>
+        <field name="model">preparation.stock.line</field>
+        <field name="arch" type="xml">
+            <form string="Linea de Preparacion">
+                <sheet>
+                    <div class="oe_title">
+                        <h3><field name="display_name" readonly="1"/></h3>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="preparation_id" readonly="1"/>
+                            <field name="product_id"
+                                   readonly="preparation_id.state in ('done', 'cancelled') or has_scans"/>
+                            <field name="uom_id" readonly="1"/>
+                            <field name="qty_demanded"
+                                   readonly="preparation_id.state in ('done', 'cancelled') or (preparation_id.state == 'to_validate' and not preparation_id.can_edit_in_progress)"/>
+                            <field name="qty_scanned" readonly="1"/>
+                            <field name="remaining_qty" readonly="1"/>
+                            <field name="total_weight" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="state_line" readonly="1"/>
+                            <field name="is_short" readonly="1"
+                                   invisible="not is_short"/>
+                            <field name="location_ids" widget="many2many_tags"
+                                   domain="[('usage', '=', 'internal'), ('quant_ids', 'any', [('owner_id', '=', parent.owner_id), ('quantity', '>', 0), ('product_id', '=', product_id)])]"
+                                   readonly="preparation_id.state in ('done', 'cancelled') or (preparation_id.state == 'to_validate' and not preparation_id.can_edit_in_progress)"/>
+                            <field name="suggested_location_ids"
+                                   widget="many2many_tags" readonly="1"/>
+                        </group>
+</group>
+                    <field name="scan_line_ids"
+                           readonly="(preparation_id.state in ('done', 'cancelled')) or (preparation_id.state == 'to_validate' and not preparation_id.can_edit_in_progress) or not preparation_id.can_add_scan_lines_manual"
+                           context="{
+                                'default_preparation_line_id': id,
+                                'default_product_id': product_id,
+                                'default_company_id': company_id.id,
+                                'form_view_ref': 'custom_preparation_stock.view_preparation_stock_scan_line_form',
+                                'scan_auto_sync_demand': True,
+                            }">
+
+                    <list string="Escaneos" editable="bottom"
+                          add-label="Agregar una linea">
+                        <field name="product_id" column_invisible="1"/>
+                        <field name="preparation_line_id" column_invisible="1"/>
+                        <field name="quant_id"
+                               widget="many2one"
+                               string="Quant"
+                               domain="[('product_id', '=', parent.product_id),
+                                        ('quantity', '>', 0),
+                                        ('location_id.usage', '=', 'internal'),
+                                        ('location_id', 'in', parent.location_ids),
+                                        ('id', 'not in', parent.used_quant_ids),
+                                        '|',
+                                        ('owner_id', '=', False),
+                                        ('owner_id', '=', parent.owner_id)]"
+                               context="{
+                                   'default_location_id': location_id,
+                                   'default_product_id': product_id,
+                                   'search_view_ref': 'stock.quant_search_view',
+                                   'tree_view_ref': 'custom_preparation_stock.view_stock_quant_pick_tree',
+                                   'form_view_ref': 'stock.view_stock_quant_form',
+                                   'readonly_form': True,
+                               }"
+                               options="{'no_create': True, 'no_open_edit': True}"/>
+                        <field name="location_id"
+                               domain="[('usage', '=', 'internal'), ('id', 'in', parent.location_ids)]"/>
+                            <field name="lot_id"
+                                   domain="[('product_id', '=', parent.product_id)]"
+                                   groups="stock.group_production_lot"/>
+                            <field name="package_id" optional="hide"/>
+                            <field name="qty"/>
+                            <field name="scan_weight" readonly="1"/>
+                            <field name="expiration_date" readonly="1" optional="show"/>
+                            <field name="uom_id" readonly="1"/>
+                            <field name="user_id" readonly="1"/>
+                            <field name="scan_datetime" readonly="1"/>
+                            <field name="stock_move_line_id" optional="hide"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_preparation_stock_scan_line_form" model="ir.ui.view">
+        <field name="name">preparation.stock.scan.line.form</field>
+        <field name="model">preparation.stock.scan.line</field>
+        <field name="arch" type="xml">
+            <form string="Detalle de Escaneo">
+                <group>
+                        <group>
+                            <field name="preparation_line_id" invisible="1"/>
+                            <field name="product_id" readonly="1"/>
+                            <field name="uom_id" readonly="1"/>
+                            <field name="qty"/>
+                            <field name="scan_weight" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="location_id"
+                                   domain="[('usage', '=', 'internal')]"/>
+                            <field name="lot_id"
+                                   groups="stock.group_production_lot"/>
+                            <field name="expiration_date" readonly="1"/>
+                            <field name="package_id"/>
+                            <field name="quant_id" readonly="1" optional="hide"/>
+                        </group>
+                    </group>
+                <group>
+                    <group>
+                        <field name="user_id" readonly="1"/>
+                        <field name="scan_datetime" readonly="1"/>
+                        <field name="is_expired" readonly="1"/>
+                    </group>
+                    <group>
+                        <field name="stock_move_id" readonly="1" optional="hide"/>
+                        <field name="stock_move_line_id" readonly="1" optional="hide"/>
+                    </group>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_preparation_stock_search" model="ir.ui.view">
+        <field name="name">preparation.stock.search</field>
+        <field name="model">preparation.stock</field>
+        <field name="arch" type="xml">
+            <search string="Preparaciones">
+                <field name="name"/>
+                <field name="owner_id"/>
+                <field name="partner_id"/>
+                <filter name="filter_in_progress" string="En Proceso"
+                        domain="[('state', '=', 'in_progress')]"/>
+                <filter name="archived" string="Archivados"
+                        domain="[('active', '=', False)]"
+                        groups="base.group_system"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_stage" string="Etapa" context="{'group_by': 'stage_id'}"/>
+                    <filter name="group_owner" string="Propietario" context="{'group_by': 'owner_id'}"/>
+                    <filter name="group_state" string="Estado" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_preparation_stock" model="ir.actions.act_window">
+        <field name="name">Preparaciones de Stock</field>
+        <field name="res_model">preparation.stock</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_preparation_stock"
+              name="Preparaciones de Stock"
+              parent="stock.menu_stock_warehouse_mgmt"
+              action="action_preparation_stock"
+              sequence="45"/>
+
+</odoo>

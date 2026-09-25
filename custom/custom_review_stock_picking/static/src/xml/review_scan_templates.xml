@@ -1,0 +1,687 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="custom_review_stock_picking.ReviewScanAction">
+
+        <div t-if="state.loading" class="o_review_loading">
+            <i class="fa fa-spinner fa-spin"/> Cargando repaso...
+        </div>
+
+        <div t-elif="!state.exists" class="o_review_loading">
+            <i class="fa fa-ban"/> Repaso no encontrado.
+        </div>
+
+        <div t-else="" class="o_review_container">
+
+            <!-- =============================== -->
+            <!-- HEADER                          -->
+            <!-- =============================== -->
+            <div class="o_review_header">
+                <div class="o_review_top_row">
+                    <button class="btn btn-link o_review_back_btn" t-on-click="onBack">
+                        <i class="fa fa-arrow-left"/> Volver
+                    </button>
+                    <div class="o_review_title">
+                        <h2><i class="fa fa-tasks"/> Repaso de Stock
+                            <span t-if="state.name" class="o_review_name"
+                                  t-esc="state.name"/>
+                        </h2>
+                    </div>
+                    <div class="o_review_header_kpi">
+                        <span class="o_review_header_kpi_caption">Paquetes</span>
+                        <span class="o_review_header_kpi_value" t-esc="state.packageCount"/>
+                    </div>
+                    <div class="o_review_actions">
+                        <button class="btn btn-light" t-on-click="onCancel"
+                                t-if="!state.isFinished">
+                            <i class="fa fa-times"/> Cancelar
+                        </button>
+                        <button class="btn btn-outline-primary" t-on-click="onVerify"
+                                t-if="state.state === 'in_progress' &amp;&amp; !state.isFinished"
+                                t-att-disabled="state.submitting or !state.locationScanned">
+                            <i t-att-class="state.submitting ? 'fa fa-spinner fa-spin' : 'fa fa-eye'"/>
+                            Verificar
+                        </button>
+                        <button class="btn btn-primary" t-on-click="onFinish"
+                                t-if="state.state === 'in_progress' &amp;&amp; !state.isFinished"
+                                t-att-disabled="state.submitting">
+                            <i t-att-class="state.submitting ? 'fa fa-spinner fa-spin' : 'fa fa-check'"/>
+                            Finalizar
+                        </button>
+                        <button class="btn btn-success" t-on-click="onStart"
+                                t-if="state.state === 'available'">
+                            <i class="fa fa-play"/> Iniciar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="o_review_meta">
+                    <span t-if="state.currentLocation" class="o_review_meta_badge o_review_location_badge">
+                        <i class="fa fa-map-marker"/> Ubicación: <strong t-esc="state.currentLocation"/>
+                    </span>
+                    <button type="button" class="btn btn-link btn-sm o_review_meta_toggle"
+                            t-on-click="toggleMeta"
+                            t-att-aria-expanded="state.metaExpanded"
+                            aria-label="Más detalles">
+                        <i class="fa fa-info-circle"/> Detalles
+                        <i t-att-class="'fa ms-1 ' + (state.metaExpanded ? 'fa-chevron-up' : 'fa-chevron-down')"/>
+                    </button>
+
+                    <t t-if="state.metaExpanded">
+                        <span t-if="state.separationLocation &amp;&amp; state.currentLocation"
+                              class="o_review_meta_badge">
+                            Separación: <t t-esc="state.separationLocation"/>
+                        </span>
+                        <span t-if="state.ownerName" class="o_review_meta_badge">
+                            Propietario: <strong t-esc="state.ownerName"/>
+                        </span>
+                        <span t-if="state.partnerName" class="o_review_meta_badge">
+                            Destino: <t t-esc="state.partnerName"/>
+                        </span>
+                    </t>
+                </div>
+
+                <div class="o_review_status_band">
+                    <div t-if="state.isFinished" class="o_review_finished_banner">
+                        <i class="fa fa-lock"/>
+                        <t t-if="state.dateEnd &amp;&amp; state.state === 'in_progress'">
+                            Fin de la preparación registrado. Regrese al formulario y pulse "Validar".
+                        </t>
+                        <t t-else="">
+                            Este repaso ya no está en escaneo. Regrese al formulario.
+                        </t>
+                    </div>
+
+                    <div t-att-class="'alert alert-' + state.messageType + ' o_review_message d-flex justify-content-between align-items-center'"
+                         t-if="state.message" role="alert">
+                        <span class="o_review_message_text">
+                            <i t-att-class="'fa ' + (
+                                state.messageType === 'success' ? 'fa-check-circle' :
+                                state.messageType === 'danger' ? 'fa-exclamation-triangle' :
+                                state.messageType === 'warning' ? 'fa-exclamation-circle' :
+                                'fa-info-circle')"/>
+                            <t t-esc="state.message"/>
+                        </span>
+                        <button type="button" class="btn-close o_review_message_close"
+                                t-on-click="closeMessage" aria-label="Cerrar mensaje"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =============================== -->
+            <!-- SCANBAR                         -->
+            <!-- =============================== -->
+            <div t-if="!state.isFinished &amp;&amp; state.state === 'in_progress'"
+                 class="o_review_input_row">
+                <div class="o_review_scanner_icon">
+                    <i class="fa fa-barcode"/>
+                </div>
+                <input type="text" ref="scanInput" class="form-control form-control-lg"
+                       placeholder="Escanee ubicación, lote o producto..."
+                       t-att-value="state.barcodeInput"
+                       t-on-input="onBarcodeInput"
+                       t-on-keydown="onInputKeydown"/>
+                <button class="btn btn-primary btn-lg" t-on-click="onSubmitBarcode">
+                    <i class="fa fa-plus"/> Escanear
+                </button>
+            </div>
+
+            <!-- =============================== -->
+            <!-- LAYOUT: SIDEBAR + MAIN          -->
+            <!-- =============================== -->
+            <div class="o_review_layout">
+
+                <!-- SIDEBAR -->
+                <div class="o_review_sidebar">
+                    <div class="o_review_sidebar_header">
+                        <h3>Paquetes</h3>
+                        <button t-if="!state.isFinished &amp;&amp; hasUnpackagedMoves"
+                                class="btn btn-primary btn-sm" t-on-click="onOpenPackageWizard">
+                            <i class="fa fa-cube"/> Paquetizar
+                        </button>
+                    </div>
+
+                    <!-- Sin paquetizar: oculto hasta escanear la ubicacion de separacion -->
+                    <div t-if="state.locationScanned" class="o_review_sidebar_item" role="button" tabindex="0"
+                         t-att-class="state.selectedSidebarItem === 'unpacked' ? 'selected' : ''"
+                         t-att-aria-pressed="state.selectedSidebarItem === 'unpacked'"
+                         t-att-aria-label="'Ver productos sin paquetizar'"
+                         t-on-click="() => this.selectSidebarItem('unpacked')"
+                         t-on-keydown="(ev) => this.onSidebarKeydown('unpacked', ev)">
+                        <div class="o_review_sidebar_item_header">
+                            <i class="fa fa-inbox"/>
+                            <span>SIN PAQUETIZAR</span>
+                            <span class="o_review_chip o_review_chip_sm ms-auto"
+                                  t-esc="movesWithUnpackagedLines.length"/>
+                        </div>
+                    </div>
+
+                    <!-- Paquetes -->
+                    <div t-foreach="state.packages" t-as="pkg" t-key="pkg.id"
+                         class="o_review_sidebar_item" role="button" tabindex="0"
+                         t-att-class="state.selectedSidebarItem === pkg.id ? 'selected' : ''"
+                         t-att-aria-pressed="state.selectedSidebarItem === pkg.id"
+                         t-att-aria-label="'Ver paquete ' + pkg.name"
+                         t-on-click="() => this.selectSidebarItem(pkg.id)"
+                         t-on-keydown="(ev) => this.onSidebarKeydown(pkg.id, ev)">
+                        <div class="o_review_sidebar_item_header">
+                            <i class="fa fa-cube"/>
+                            <span t-esc="pkg.name"/>
+                            <span class="o_review_chip o_review_chip_sm ms-auto"
+                                  t-esc="pkg.line_count"/>
+                        </div>
+                        <div class="o_review_sidebar_item_sub">
+                            <span t-if="pkg.shipping_weight > 0"
+                                  class="o_review_chip o_review_chip_sm">
+                                <i class="fa fa-balance-scale"/>
+                                <t t-esc="pkg.shipping_weight"/> kg
+                            </span>
+                            <span t-if="pkg.package_type_name"
+                                  class="o_review_chip o_review_chip_sm">
+                                <i class="fa fa-tag"/>
+                                <t t-esc="pkg.package_type_name"/>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div t-if="state.packages.length === 0 &amp;&amp; state.selectedSidebarItem !== 'unpacked'"
+                         class="o_review_sidebar_empty">
+                        No hay paquetes creados.
+                    </div>
+                </div>
+
+                <!-- MAIN SECTION -->
+                <div class="o_review_main">
+
+                    <!-- =============================== -->
+                    <!-- PLACEHOLDER: SIN UBICACION ESCANEADA -->
+                    <!-- =============================== -->
+                    <div t-if="state.selectedSidebarItem === 'unpacked' &amp;&amp; !state.locationScanned"
+                         class="o_review_empty">
+                        <i class="fa fa-lock"/>
+                        Escanee la ubicación de separación para ver los productos sin paquetizar.
+                    </div>
+
+                    <!-- =============================== -->
+                    <!-- VISTA: SIN PAQUETIZAR (solo con ubicacion escaneada) -->
+                    <!-- =============================== -->
+                    <div t-if="state.selectedSidebarItem === 'unpacked' &amp;&amp; state.locationScanned">
+                        <h3>Sin Paquetizar
+                            <span class="o_review_chip o_review_chip_sm ms-2"
+                                  t-esc="unpackedMoves.length"/>
+                        </h3>
+                        <div t-if="unpackedMoves.length === 0" class="o_review_empty">
+                            Todos los productos están paquetizados.
+                        </div>
+                        <div t-foreach="unpackedMoves" t-as="move" t-key="move.id"
+                             class="o_review_move_card"
+                             t-att-class="move.id === state.selectedMoveId ? 'selected' : ''">
+                            <div class="o_review_move_header" role="button" tabindex="0"
+                                 t-att-aria-label="'Seleccionar ' + move.product_name"
+                                 t-on-click="() => this.selectMove(move.id)"
+                                 t-on-keydown="(ev) => this.onMoveKeydown(move, ev)">
+                                <div class="o_review_move_product">
+                                    <strong t-esc="move.product_name"/>
+                                </div>
+                                <div class="o_review_move_counter">
+                                    <t t-esc="move.total_qty_reviewed"/>/<t t-esc="move.qty_preparation"/>
+                                </div>
+                                <button t-if="move.qty_remaining > 0.0001 || moveHasUnpackagedReviewed(move)"
+                                        class="btn btn-link btn-sm o_review_expand_btn"
+                                        t-on-click="(ev) => this.toggleExpandMove(move.id, ev)">
+                                    <i t-att-class="state.expandedMoves[move.id] ? 'fa fa-chevron-up' : 'fa fa-chevron-down'"/>
+                                </button>
+                                <span t-else="" class="o_review_fully_packaged_badge">
+                                    <i class="fa fa-check-circle"/> Paquetizado
+                                </span>
+                            </div>
+                            <div class="o_review_move_sub">
+                                Cantidad paquetizada: <t t-esc="move.qty_packaged"/>
+                            </div>
+
+                            <!-- Lines expandibles: solo lineas sin paquete -->
+                            <div t-if="state.expandedMoves[move.id]"
+                                 class="o_review_move_lines">
+                                <t t-set="unpkg_lines" t-value="move.move_lines.filter(l => !l.package_id)"/>
+                                <t t-set="has_deletable" t-value="unpkg_lines.some(l => l.is_excess || l.is_foreign)"/>
+                                <table t-if="unpkg_lines.length > 0" class="table table-sm table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Lote</th>
+                                            <th>Vencimiento</th>
+                                            <th class="text-end">Cant. Repasada</th>
+                                            <th class="text-end">Cantidad</th>
+                                            <th>Estado</th>
+                                            <th t-if="state.flags.manual_counts &amp;&amp; !state.isFinished"></th>
+                                            <th t-if="has_deletable &amp;&amp; !state.isFinished" class="text-end">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="unpkg_lines" t-as="ml" t-key="ml.id">
+                                            <t t-set="rowSeverityLabel"
+                                               t-value="[ml.is_expired ? 'Vencido' : '', ml.is_foreign ? 'Fuera de preparación' : '', ml.is_excess ? 'Exceso' : ''].filter(v => v).join(' + ')"/>
+                                            <t t-set="rowSeverityClass"
+                                               t-value="(ml.is_expired || ml.is_foreign) ? 'o_review_chip_danger' : 'o_review_chip_warning'"/>
+                                            <tr t-att-class="(ml.is_expired || ml.is_foreign ? 'o_review_line_expired_foreign ' : '') + (ml.is_excess ? 'o_review_line_excess ' : '') + (ml.state === 'done' ? 'o_review_line_done' : 'o_review_line_pending')">
+                                                <td>
+                                                    <span t-if="ml.lot_name" t-esc="ml.lot_name"/>
+                                                    <span t-else="" class="text-muted">-</span>
+                                                    <span t-if="rowSeverityLabel"
+                                                          class="o_review_chip o_review_chip_sm ms-1"
+                                                          t-att-class="rowSeverityClass">
+                                                        <i class="fa fa-exclamation-triangle"/>
+                                                        <t t-esc="rowSeverityLabel"/>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span t-if="ml.expiration_date" t-esc="ml.expiration_date"/>
+                                                    <span t-else="" class="text-muted">-</span>
+                                                </td>
+                                                <td class="text-end o_review_cant_repasada"
+                                                    t-esc="ml.cant_repasada"/>
+                                                <td class="text-end" t-esc="ml.qty"/>
+                                                <td>
+                                                    <span t-att-class="'o_review_chip o_review_chip_sm ' + (
+                                                        ml.state === 'done' ? 'o_review_chip_success' : '')">
+                                                        <i t-att-class="'fa ' + (ml.state === 'done' ? 'fa-check-circle' : 'fa-circle-o')"/>
+                                                        <t t-esc="stateLabels[ml.state] || ml.state"/>
+                                                    </span>
+                                                </td>
+                                                <td t-if="state.flags.manual_counts &amp;&amp; !state.isFinished" class="text-end">
+                                                    <div class="o_review_manual_count">
+                                                        <button class="btn btn-sm btn-outline-primary o_review_plus_btn"
+                                                                t-on-click="() => this.onManualIncrement(ml.id)"
+                                                                title="Sumar 1">
+                                                            <i class="fa fa-plus"/>
+                                                        </button>
+                                                        <input type="number" min="0" step="any"
+                                                               class="form-control form-control-sm o_review_count_input"
+                                                               t-att-value="ml.cant_repasada"
+                                                               t-on-change="(ev) => this.onManualCountChange(ml.id, ev)"
+                                                               placeholder="0"/>
+                                                    </div>
+                                                </td>
+                                                <td t-if="has_deletable &amp;&amp; !state.isFinished" class="text-end">
+<button t-if="(ml.is_excess || ml.is_foreign) &amp;&amp; !state.isFinished"
+                                                    class="btn btn-link btn-sm o_review_line_remove_btn"
+                                                    t-on-click="() => this.onDeleteReviewLine(ml.id)"
+                                                    title="Eliminar línea"
+                                                    aria-label="Eliminar línea">
+                                                <i class="fa fa-trash"/>
+                                            </button>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                                <div t-else="" class="o_review_empty">
+                                    Todas las líneas de este producto están paquetizadas.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- =============================== -->
+                    <!-- VISTA: PAQUETE SELECCIONADO     -->
+                    <!-- =============================== -->
+                    <div t-if="selectedPackage">
+                        <div class="o_review_package_header">
+                            <h3>
+                                <i class="fa fa-cube"/> <t t-esc="selectedPackage.name"/>
+                            </h3>
+                            <div class="o_review_package_info">
+                                <span class="o_review_chip o_review_chip_accent">
+                                    <i class="fa fa-cubes"/>
+                                    <t t-esc="selectedPackage.total_qty"/> unidades
+                                </span>
+                                <span t-if="selectedPackage.shipping_weight > 0" class="o_review_chip">
+                                    <i class="fa fa-balance-scale"/>
+                                    <t t-esc="selectedPackage.shipping_weight"/> kg
+                                </span>
+                                <span t-if="selectedPackage.package_type_name" class="o_review_chip">
+                                    <i class="fa fa-tag"/>
+                                    <t t-esc="selectedPackage.package_type_name"/>
+                                </span>
+                            </div>
+                            <div class="o_review_package_fields">
+                                <div class="o_review_pkg_field">
+                                    <label class="form-label">Peso (kg)</label>
+                                    <input type="number" min="0" step="any"
+                                           class="form-control form-control-sm"
+                                           t-att-value="selectedPackage.shipping_weight"
+                                           t-att-disabled="state.isFinished"
+                                           t-on-change="onPackageWeightChange"/>
+                                </div>
+                                <div class="o_review_pkg_field">
+                                    <label class="form-label">Tipo de paquete</label>
+                                    <select class="form-select form-select-sm"
+                                            t-att-disabled="state.isFinished"
+                                            t-on-change="onPackageTypeChange">
+                                        <option value="0" t-att-selected="!selectedPackage.package_type_id">
+                                            --
+                                        </option>
+                                        <t t-foreach="state.packageTypes" t-as="pt" t-key="pt.id">
+                                            <option t-att-value="pt.id"
+                                                    t-att-selected="selectedPackage.package_type_id === pt.id"
+                                                    t-esc="pt.name"/>
+                                        </t>
+                                    </select>
+                                </div>
+                            </div>
+                            <button t-if="!state.isFinished &amp;&amp; state.flags.allow_unpackaging"
+                                    class="btn btn-outline-danger btn-sm" t-on-click="onUnpackageLines">
+                                <i class="fa fa-undo"/> Desempaquetar todo
+                            </button>
+                        </div>
+                        <table class="table table-sm table-hover o_review_package_table">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Lote</th>
+                                    <th class="text-end">Cantidad</th>
+                                    <th>Propietario</th>
+                                        <th t-if="state.flags.allow_unpackaging &amp;&amp; !state.isFinished"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="selectedPackageLines" t-as="ml" t-key="ml.id">
+                                    <t t-set="rowSeverityLabel"
+                                       t-value="[ml.is_expired ? 'Vencido' : '', ml.is_foreign ? 'Fuera de preparación' : '', ml.is_excess ? 'Exceso' : ''].filter(v => v).join(' + ')"/>
+<t t-set="rowSeverityClass"
+                                          t-value="(ml.is_expired || ml.is_foreign) ? 'o_review_chip_danger' : 'o_review_chip_warning'"/>
+                                    <tr t-att-class="(ml.is_expired || ml.is_foreign ? 'o_review_line_expired_foreign ' : '') + (ml.is_excess ? 'o_review_line_excess' : '')">
+                                        <td t-esc="ml.product_name"/>
+                                        <td>
+                                            <span t-if="ml.lot_name" t-esc="ml.lot_name"/>
+                                            <span t-else="" class="text-muted">-</span>
+                                            <span t-if="rowSeverityLabel"
+                                                  class="o_review_chip o_review_chip_sm ms-1"
+                                                  t-att-class="rowSeverityClass">
+                                            <i class="fa fa-exclamation-triangle"/>
+                                            <t t-esc="rowSeverityLabel"/>
+                                        </span>
+                                        </td>
+                                        <td class="text-end" t-esc="ml.cant_repasada"/>
+                                        <td>
+                                            <span t-if="ml.owner_name" t-esc="ml.owner_name"/>
+                                            <span t-else="" class="text-muted">-</span>
+                                        </td>
+                                                <td t-if="state.flags.allow_unpackaging &amp;&amp; !state.isFinished" class="text-end">
+                                                    <button class="btn btn-link btn-sm o_review_line_remove_btn"
+                                                            t-on-click="() => this.onRemoveLineFromPackage(ml.id)"
+                                                    title="Quitar del paquete"
+                                                    aria-label="Quitar del paquete">
+                                                <i class="fa fa-trash"/>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </t>
+                                <tr t-if="selectedPackageLines.length === 0">
+                                    <td t-att-colspan="state.flags.allow_unpackaging ? 5 : 4"
+                                        class="text-center text-muted">
+                                        Este paquete no tiene líneas.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =============================== -->
+            <!-- PACKAGE WIZARD (MODAL)          -->
+            <!-- =============================== -->
+            <div t-if="state.showPackageWizard" class="o_review_modal_overlay"
+                 t-on-click="onCancelPackageWizard">
+                <div class="o_review_modal" role="dialog" aria-modal="true" aria-label="Paquetizar"
+                     tabindex="-1"
+                     t-on-click="(ev) => ev.stopPropagation()">
+                    <div class="o_review_modal_header">
+                        <h3><i class="fa fa-cube"/> Paquetizar</h3>
+                        <button class="btn-close" t-on-click="onCancelPackageWizard"
+                                aria-label="Cerrar"/>
+                    </div>
+                    <div class="o_review_modal_body">
+                        <div class="o_review_modal_target">
+                            <label class="form-label"><strong>Destino del paquete</strong></label>
+                            <div class="o_review_modal_target_options">
+                                <label>
+                                    <input type="radio" t-att-checked="state.packageWizardTarget === 'new'"
+                                           t-on-change="() => this.onPackageWizardTargetChange('new')"/>
+                                    Crear nuevo paquete
+                                </label>
+                                <label>
+                                    <input type="radio" t-att-checked="state.packageWizardTarget === 'existing'"
+                                           t-on-change="() => this.onPackageWizardTargetChange('existing')"/>
+                                    Agregar a paquete existente
+                                </label>
+                            </div>
+                            <div t-if="state.packageWizardTarget === 'existing'"
+                                 class="o_review_modal_target_pkg">
+                                <select class="form-select form-select-sm"
+                                        t-on-change="onPackageWizardSelectPackage">
+                                    <option value="0">Seleccione un paquete...</option>
+                                    <t t-foreach="packageWizardTargetPackages" t-as="pkg" t-key="pkg.id">
+                                        <option t-att-value="pkg.id" t-esc="pkg.name"/>
+                                    </t>
+                                </select>
+                            </div>
+                            <div t-else="" class="o_review_modal_fields o_review_modal_fields_new">
+                                <div class="o_review_modal_field">
+                                    <label class="form-label">Peso (kg)</label>
+                                    <input type="number" min="0" step="any" class="form-control form-control-sm"
+                                           t-att-value="state.packageWizardWeight"
+                                           t-on-change="onPackageWizardWeightChange"/>
+                                </div>
+                                <div class="o_review_modal_field">
+                                    <label class="form-label">Tipo de paquete</label>
+                                    <select class="form-select form-select-sm"
+                                            t-on-change="onPackageWizardTypeChange">
+                                        <option value="0">--</option>
+                                        <t t-foreach="state.packageTypes" t-as="pt" t-key="pt.id">
+                                            <option t-att-value="pt.id"
+                                                    t-att-selected="state.packageWizardTypeInput === pt.id"
+                                                    t-esc="pt.name"/>
+                                        </t>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="o_review_modal_info">
+                            Seleccione las líneas a incluir en el paquete.
+                            (<t t-esc="packageWizardSelectedCount"/> de
+                            <t t-esc="state.packageWizardLines.length"/> seleccionadas)
+                        </div>
+                        <div t-if="packageWizardSummary.length > 0" class="o_review_modal_summary">
+                            <t t-foreach="packageWizardSummary" t-as="grp" t-key="grp.product_name">
+                                <span class="o_review_modal_summary_item">
+                                    <strong t-esc="grp.product_name"/>
+                                    <span class="text-muted">
+                                        (<t t-esc="grp.line_count"/>
+                                        <t t-esc="grp.line_count === 1 ? 'línea' : 'líneas'"/> —
+                                        <t t-esc="grp.total_qty"/> uds.)
+                                    </span>
+                                </span>
+                            </t>
+                        </div>
+                        <div class="o_review_modal_select_all">
+                            <label>
+                                <input type="checkbox"
+                                       t-att-checked="state.packageWizardLines.length > 0 &amp;&amp; state.packageWizardLines.every(l => l.selected)"
+                                       t-on-change="onPackageWizardToggleAll"/>
+                                Seleccionar todo
+                            </label>
+                        </div>
+                        <div class="o_review_modal_lines">
+                            <div t-foreach="state.packageWizardLines" t-as="ml" t-key="ml.id"
+                                 class="o_review_modal_line"
+                                 t-att-class="ml.selected ? 'selected' : ''"
+                                 t-on-click="() => this.onPackageWizardToggleLine(ml.id)">
+                                 <input type="checkbox" t-att-checked="ml.selected"
+                                       t-on-change="() => this.onPackageWizardToggleLine(ml.id)"
+                                       t-on-click="(ev) => ev.stopPropagation()"/>
+                                <div class="o_review_modal_line_info">
+                                    <span class="o_review_modal_line_product" t-esc="ml.product_name"/>
+                                    <span t-if="ml.lot_name" class="o_review_modal_line_lot"
+                                          t-esc="'Lote: ' + ml.lot_name"/>
+                                    <span t-if="ml.owner_name" class="o_review_modal_line_owner"
+                                          t-esc="ml.owner_name"/>
+                                </div>
+                                <span class="o_review_modal_line_qty ms-auto"
+                                      t-esc="ml.cant_repasada"/>
+                            </div>
+                            <div t-if="state.packageWizardLines.length === 0"
+                                 class="o_review_empty">
+                                No hay líneas repasadas sin paquetizar.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="o_review_modal_footer">
+                        <button class="btn btn-secondary" t-on-click="onCancelPackageWizard">
+                            Cancelar
+                        </button>
+                        <button class="btn btn-primary"
+                                t-on-click="onConfirmPackage"
+                                t-att-disabled="packageWizardSelectedCount === 0 || state.submitting">
+                            <i t-att-class="state.submitting ? 'fa fa-spinner fa-spin' : 'fa fa-check'"/>
+                            Confirmar
+                            (<t t-esc="packageWizardSelectedCount"/> líneas)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =============================== -->
+            <!-- VERIFY MODAL                    -->
+            <!-- =============================== -->
+            <div t-if="state.showVerifyModal" class="o_review_modal_overlay"
+                 t-on-click="onCloseVerify">
+                <div class="o_review_modal o_review_verify_modal"
+                     role="dialog" aria-modal="true" aria-label="Verificación del Repaso"
+                     tabindex="-1"
+                     t-on-click="(ev) => ev.stopPropagation()">
+                    <div class="o_review_modal_header">
+                        <h3><i class="fa fa-eye"/> Verificación del Repaso</h3>
+                        <button class="btn-close" t-on-click="onCloseVerify"
+                                aria-label="Cerrar"/>
+                    </div>
+                    <div class="o_review_modal_body">
+                        <div t-att-class="'o_review_verify_banner alert ' + (
+                            verifyOk ? 'alert-info' : 'alert-warning')">
+                            <i t-att-class="'fa ' + (
+                                verifyOk ? 'fa-check-circle' : 'fa-exclamation-triangle')"/>
+                            <t t-if="verifyOk">
+                                El repaso está completo y las cantidades coinciden con lo preparado.
+                            </t>
+                            <t t-else="">
+                                Se encontraron diferencias o pendientes. Esta verificación es informativa y no bloquea la Finalización.
+                            </t>
+                        </div>
+
+                        <div t-if="verifyIssues.length > 0"
+                             class="o_review_verify_issues">
+                            <h4>Problemas encontrados</h4>
+                            <ul>
+                                <li t-foreach="verifyIssues" t-as="issue"
+                                    t-key="issue_index" t-esc="issue"/>
+                            </ul>
+                        </div>
+
+                        <div t-if="verifyWarnings.length > 0"
+                             class="o_review_verify_warnings">
+                            <h4>Advertencias</h4>
+                            <ul>
+                                <li t-foreach="verifyWarnings" t-as="warn"
+                                    t-key="warn_index" t-esc="warn"/>
+                            </ul>
+                        </div>
+
+                        <h4>Cantidades por producto</h4>
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th class="text-end">Preparado</th>
+                                    <th class="text-end">Repasado</th>
+                                    <th class="text-end">Paquetizado</th>
+                                    <th class="text-end">Restante</th>
+                                    <th class="text-end">Diferencia</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="verifySummaryLines" t-as="line"
+                                   t-key="line.product_id">
+                                    <tr t-att-class="line.has_diff ? 'o_review_verify_diff' : ''">
+                                        <td t-esc="line.product_name"/>
+                                        <td class="text-end" t-esc="line.qty_preparation"/>
+                                        <td class="text-end" t-esc="line.qty_reviewed"/>
+                                        <td class="text-end" t-esc="line.qty_packaged"/>
+                                        <td class="text-end" t-esc="line.qty_remaining"/>
+                                        <td class="text-end"
+                                            t-att-class="line.has_diff ? 'text-danger fw-bold' : ''"
+                                            t-esc="line.difference"/>
+                                    </tr>
+                                </t>
+                                <tr t-if="verifySummaryLines.length === 0">
+                                    <td t-att-colspan="6" class="text-center text-muted">
+                                        Sin lineas.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h4>Productos sin paquetizar</h4>
+                        <div t-if="verifyUnpacked.length === 0" class="o_review_empty">
+                            Todos los productos están paquetizados.
+                        </div>
+                        <ul t-else="">
+                            <li t-foreach="verifyUnpacked" t-as="up" t-key="up.product_id">
+                                <strong t-esc="up.product_name"/>: restante
+                                <t t-esc="up.qty_remaining"/> de
+                                <t t-esc="up.qty_preparation"/>
+                            </li>
+                        </ul>
+
+                        <h4>Paquetes creados</h4>
+                        <div t-if="verifyPackages.length === 0" class="o_review_empty">
+                            No hay paquetes creados.
+                        </div>
+                        <t t-else="">
+                            <div t-foreach="verifyPackages" t-as="pkg"
+                                 t-key="pkg.id" class="o_review_verify_pkg">
+                                <div class="o_review_verify_pkg_header">
+                                    <strong><i class="fa fa-cube"/> <t t-esc="pkg.name"/></strong>
+                                    <span class="o_review_chip o_review_chip_sm">
+                                        <i class="fa fa-cubes"/>
+                                        <t t-esc="pkg.total_qty"/> uds.
+                                    </span>
+                                    <span t-if="pkg.shipping_weight > 0"
+                                          class="o_review_chip o_review_chip_sm">
+                                        <i class="fa fa-balance-scale"/>
+                                        <t t-esc="pkg.shipping_weight"/> kg
+                                    </span>
+                                </div>
+                                <ul t-foreach="pkg.products" t-as="prod" t-key="prod.product_name">
+                                    <li>
+                                        <t t-esc="prod.product_name"/>:
+                                        <t t-esc="prod.total_qty"/>
+                                        <span t-if="prod.lots.length" class="text-muted">
+                                            (<t t-foreach="prod.lots" t-as="lot" t-key="lot_index">Lote <t t-esc="lot"/><t t-if="!lot_index_last">, </t></t>)
+                                        </span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </t>
+                    </div>
+                    <div class="o_review_modal_footer">
+                        <button class="btn btn-secondary" t-on-click="onCloseVerify">
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </t>
+
+</templates>

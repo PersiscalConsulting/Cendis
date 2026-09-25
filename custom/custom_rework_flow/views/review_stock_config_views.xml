@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Expone en la configuracion de repasos el selector de usuarios
+         autorizados a volver a preparar (re-proceso). -->
+    <record id="view_review_stock_config_form_inherit_rework" model="ir.ui.view">
+        <field name="name">review.stock.config.form.rework</field>
+        <field name="model">review.stock.config</field>
+        <field name="inherit_id" ref="custom_review_stock_picking.view_review_stock_config_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='validations']" position="after">
+                <page string="Autorizacion de Re-Proceso" name="rework_auth">
+                    <div class="alert alert-info" role="alert">
+                        Al pedir "Volver a Preparar" (desde el repaso o desde un
+                        picking de salida no validado), el wizard pide usuario y
+                        contrasena. La contrasena se valida contra la cuenta real
+                        de Odoo del usuario ingresado y luego se verifica que ese
+                        usuario este en la lista de abajo.
+                    </div>
+                    <group>
+                        <group string="Usuarios autorizados a volver a preparar">
+                            <field name="rework_auth_user_ids" widget="many2many_tags"
+                                   placeholder="Sin usuarios = nadie puede volver a preparar"
+                                   help="Solo los usuarios que se validen con sus credenciales REALES de Odoo en el wizard de re-proceso Y esten en esta lista pueden devolver una preparacion a En Proceso (volver a preparar). Ej: agregue al supervisor que autoriza desde la tablet."/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Server action de generacion de picking de salida: EDITABLE desde
+         Odoo web (noupdate). Nombre fijado por negocio:
+         INVENTARIO REPASO: generar picking de salida
+         La disparan el boton "Generar expedicion" del wizard
+         (review.picking.generate.wizard -> run() de esta action) y el
+         menu de Acciones sobre la lista de repasos.
+         Flujo:
+           1. Traslado de mercaderia Separacion -> Ubicacion de salida
+              (stock.move directos done, con los mismos paquetes).
+           2. Creacion del stock.picking draft Expedicion -> Clientes
+              (misma agrupacion que el wizard original). -->
+    <data noupdate="1">
+        <record id="action_generate_out_picking" model="ir.actions.server">
+            <field name="name">INVENTARIO REPASO: generar picking de salida</field>
+            <field name="model_id" ref="model_review_stock_picking"/>
+            <field name="binding_model_id" ref="model_review_stock_picking"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+if not records:
+    active_ids = env.context.get('active_ids')
+    if not active_ids and env.context.get('active_id'):
+        active_ids = [env.context.get('active_id')]
+    records = env['review.stock.picking'].browse(active_ids or [])
+if not records:
+    raise UserError('Seleccione al menos un repaso.')
+
+reviews = records
+first_review = reviews[0]
+eps = 0.0001
+now = datetime.datetime.now()
+StockMove = env['stock.move'].sudo()
+
+# 1. VALIDACIONES DE AGRUPACION (heredadas del wizard)
+# -------------------------------------------------------------------
+for rev in reviews:
+    if rev.state != 'done':
+        raise UserError(
+            'El repaso %s debe estar Finalizado para generar el picking '
+            'de salida.' % rev.name)
+
+if len(reviews.mapped('company_id')) > 1:
+    raise UserError(
+        'Los repasos seleccionados pertenecen a distintas empresas. '
+        'No es posible agruparlos en un unico picking.')
+owners = reviews.mapped('owner_id')
+if len(owners) > 1:
+    raise UserError(
+        'Los repasos seleccionados tienen propietarios distintos. '
+        'Todos los repasos deben pertenecer al mismo propietario.')
+owner = owners[0] if owners else False
+if not owner:
+    raise UserError(
+        'Los repasos seleccionados no tienen propietario definido.')
+destinos = reviews.mapped('partner_id')
+if len(destinos) > 1:
+    raise UserError(
+        'Los repasos seleccionados tienen clientes/destinos distintos. '
+        'Todos los repasos deben apuntar al mismo destino.')
+partner = destinos[0] if destinos else False
+
+company = first_review.company_id
+
+# Evita duplicar la expedicion cuando el modulo de re-proceso vincula
+# el picking generado al repaso (expedition_picking_ids).
+if 'expedition_picking_ids' in reviews._fields:
+    already = reviews.filtered('expedition_picking_ids')
+    if already:
+        raise UserError(
+            'Los repasos %s ya generaron un picking de salida.'
+            % ', '.join(already.mapped('name')))
+
+# 2. CONFIGURACION: ubicacion de salida, tipo de picking y cliente
+# -------------------------------------------------------------------
+cfg = env['review.stock.config']._get_config(company)
+exit_loc = cfg.exit_location_id
+if not exit_loc:
+    exit_loc = env['stock.location'].sudo().search(
+        [('complete_name', '=', 'TOR1/Expedicion')], limit=1)
+if not exit_loc:
+    raise UserError(
+        'Defina la ubicacion de salida (TOR1/Expedicion) en la '
+        'configuracion de repasos.')
+if not cfg.picking_type_id:
+    raise UserError(
+        'No hay tipo de picking de salida configurado en Configuracion '
+        'de Repasos para la empresa %s.' % company.name)
+picking_type = cfg.picking_type_id
+
+customer_loc = env.ref(
+    'stock.stock_location_customers', raise_if_not_found=False)
+if not customer_loc:
+    customer_loc = env['stock.location'].search(
+        [('usage', '=', 'customer')], limit=1)
+if not customer_loc:
+    raise UserError('No se encontro la ubicacion Partner/Customers.')
+
+has_picked = 'picked' in StockMove._fields
+
+# 3. TRASLADO DE MERCADERIA: SEPARACION -> UBICACION DE SALIDA
+# -------------------------------------------------------------------
+# Un stock.move por producto y por repaso (origen=ubicacion de
+# separacion, destino=ubicacion de salida) con las mismas lineas
+# paquetizadas: package_id de origen y result_package_id de destino
+# apuntan al mismo paquete, de modo que el paquete entero se traslado.
+# Idempotente: si el repaso ya fue trasladado (movimiento done con
+# reference = nombre del repaso y destino = ubicacion de salida) se
+# salta y no vuelve a impactar stock.
+for review in reviews:
+    dest = review.preparation_id.location_dest_id
+    if not dest:
+        raise UserError(
+            'La preparacion del repaso %s no tiene ubicacion de '
+            'separacion definida.' % review.name)
+
+    already_transferred = StockMove.search([
+        ('reference', '=', review.name),
+        ('location_dest_id', '=', exit_loc.id),
+        ('state', '=', 'done'),
+    ], limit=1)
+    if already_transferred:
+        continue
+
+    packaged = review.move_ids.move_line_ids.filtered(
+        lambda l: l.package_id and l.qty > eps
+    )
+    if not packaged:
+        continue
+
+    transfer_moves = {}
+    transfer_lines_by_product = {}
+    for ml in packaged.sorted('id'):
+        product = ml.product_id
+        ml_vals = {
+            'product_id': product.id,
+            'quantity': ml.qty,
+            'qty_done': ml.qty,
+            'product_uom_id': product.uom_id.id,
+            'location_id': dest.id,
+            'location_dest_id': exit_loc.id,
+            'company_id': review.company_id.id,
+            'reference': review.name,
+            'package_id': ml.package_id.id,
+            'result_package_id': ml.package_id.id,
+        }
+        if ml.lot_id:
+            ml_vals['lot_id'] = ml.lot_id.id
+        if ml.owner_id:
+            ml_vals['owner_id'] = ml.owner_id.id
+        transfer_lines_by_product.setdefault(product.id, []).append(ml_vals)
+
+    for prod_id, ml_vals_list in transfer_lines_by_product.items():
+        product = env['product.product'].browse(prod_id)
+        move_vals = {
+            'name': '%s - %s' % (review.name, product.display_name),
+            'reference': review.name,
+            'origin': review.name,
+            'product_id': product.id,
+            'product_uom_qty': sum(v['quantity'] for v in ml_vals_list),
+            'product_uom': product.uom_id.id,
+            'location_id': dest.id,
+            'location_dest_id': exit_loc.id,
+            'company_id': review.company_id.id,
+            'move_line_ids': [(0, 0, v) for v in ml_vals_list],
+        }
+        if has_picked:
+            move_vals['picked'] = True
+        transfer_moves[product.id] = StockMove.create(move_vals)
+
+    for move in transfer_moves.values():
+        move._action_confirm()
+        move._action_assign()
+    for move in transfer_moves.values():
+        move._action_done()
+
+# 4. STOCK.PICKING DE SALIDA: UBICACION DE SALIDA -> CLIENTES
+# -------------------------------------------------------------------
+# Agrupacion identica al wizard original: un picking draft con
+# partner_id = owner, location_id = ubicacion de salida,
+# location_dest_id = Partner/Customers, un stock.move por producto y
+# stock.move.line por detalle de lote/propietario/paquete.
+product_qty_map = {}
+move_line_vals_list = []
+for rev in reviews:
+    for ml in rev.move_ids.move_line_ids.filtered(
+        lambda l: l.package_id and l.qty > eps
+    ):
+        product = ml.review_move_id.product_id
+        product_qty_map[product.id] = (
+            product_qty_map.get(product.id, 0.0) + ml.qty)
+        move_line_vals_list.append({
+            'product_id': product.id,
+            'product_uom_id': product.uom_id.id,
+            'lot_id': ml.lot_id.id if ml.lot_id else False,
+            'owner_id': owner.id,
+            'quantity': ml.qty,
+            'qty_done': ml.qty,
+            'location_id': exit_loc.id,
+            'location_dest_id': customer_loc.id,
+            'package_id': ml.package_id.id,
+            'result_package_id': ml.package_id.id,
+            'company_id': company.id,
+        })
+if not move_line_vals_list:
+    raise UserError(
+        'Los repasos seleccionados no tienen lineas paquetizadas '
+        'para generar el picking.')
+
+# origin segun los origin_doc de las preparaciones origen.
+docs = set()
+for rev in reviews:
+    doc = rev.preparation_id.origin_doc
+    if doc and doc.strip():
+        docs.add(doc.strip())
+if not docs:
+    origin = ', '.join(reviews.mapped('name'))
+elif len(docs) == 1:
+    origin = docs.pop()
+else:
+    origin = ', '.join(sorted(docs))
+
+picking_vals = {
+    'partner_id': owner.id,
+    'picking_type_id': picking_type.id,
+    'location_id': exit_loc.id,
+    'location_dest_id': customer_loc.id,
+    'origin': origin,
+    'scheduled_date': now,
+}
+if 'owner_id' in env['stock.picking']._fields:
+    picking_vals['owner_id'] = owner.id
+if partner and 'destino_id' in env['stock.picking']._fields:
+    picking_vals['destino_id'] = partner.id
+picking = env['stock.picking'].sudo().create(picking_vals)
+
+move_line_vals_by_product = {}
+for ml_vals in move_line_vals_list:
+    move_line_vals_by_product.setdefault(
+        ml_vals['product_id'], []).append(ml_vals)
+
+move_vals_list = []
+for product_id, total_qty in product_qty_map.items():
+    product = env['product.product'].browse(product_id)
+    line_vals_list = move_line_vals_by_product[product_id]
+    for v in line_vals_list:
+        v['picking_id'] = picking.id
+    move_vals = {
+        'name': product.display_name,
+        'reference': origin,
+        'origin': origin,
+        'product_id': product.id,
+        'product_uom_qty': total_qty,
+        'product_uom': product.uom_id.id,
+        'location_id': exit_loc.id,
+        'location_dest_id': customer_loc.id,
+        'picking_id': picking.id,
+        'restrict_partner_id': owner.id,
+        'company_id': company.id,
+        'move_line_ids': [(0, 0, v) for v in line_vals_list],
+    }
+    if has_picked:
+        move_vals['picked'] = True
+    move_vals_list.append(move_vals)
+env['stock.move'].sudo().create(move_vals_list)
+
+# 5. POST-PROCESO: liberar reservas, vincular y avisar
+# -------------------------------------------------------------------
+for rev in reviews:
+    reservations = env['stock.quant.reservation'].sudo().search([
+        ('preparation_id', '=', rev.preparation_id.id),
+        ('state', '=', 'reserved'),
+    ])
+    if reservations:
+        reservations.write({
+            'state': 'released',
+            'release_reason': 'expedition',
+            'release_date': now,
+        })
+
+# Vincular el picking generado a los repasos que lo originaron para
+# poder rastrear la relacion picking -> repaso(s) en el re-proceso.
+if 'expedition_picking_ids' in reviews._fields:
+    reviews.write({
+        'expedition_picking_ids': [(4, picking.id)],
+    })
+
+picking.message_post(
+    body='Picking generado desde repasos: %s'
+    % ', '.join(reviews.mapped('name'))
+)
+for rev in reviews:
+    rev.message_post(
+        body='Mercaderia trasladada a la ubicacion de salida (%s) y '
+             'picking de salida %s generado.'
+             % (exit_loc.complete_name, picking.name)
+    )
+
+action = {
+    'type': 'ir.actions.act_window',
+    'name': 'Picking de Salida Generado',
+    'res_model': 'stock.picking',
+    'res_id': picking.id,
+    'views': [(False, 'form')],
+    'target': 'current',
+}
+]]></field>
+        </record>
+    </data>
+
+</odoo>

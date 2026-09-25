@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_preparation_stock_import_wizard_form" model="ir.ui.view">
+        <field name="name">preparation.stock.import.wizard.form</field>
+        <field name="model">preparation.stock.import.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Importar desde Recepción">
+                <p>
+                    Se importará el stock de las recepciones finalizadas que
+                    coincidan con el documento de origen y el propietario de la
+                    preparación.
+                </p>
+                <group>
+                    <field name="preparation_id"/>
+                    <field name="origin_doc"/>
+                    <field name="pack_incluido"/>
+                </group>
+                <footer>
+                    <button name="action_import" type="object"
+                            string="Importar" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
