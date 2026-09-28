@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Etapa MODIFICADO para el repaso (noupdate para que el negocio pueda
+         renombrarla sin que la actualizacion la pise).
+         No se setean is_initial/is_final/is_cancel: el state se conserva tal
+         cual ('modified') porque el constrains solo actua sobre esos flags. -->
+    <data noupdate="1">
+        <record id="stage_modified" model="review.stage">
+            <field name="name">Modificado</field>
+            <field name="sequence">35</field>
+            <field name="state">modified</field>
+            <field name="fold" eval="True"/>
+            <field name="color">6</field>
+        </record>
+    </data>
+
+</odoo>

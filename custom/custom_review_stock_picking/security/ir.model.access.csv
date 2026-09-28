@@ -1,0 +1,10 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_review_stock_picking_user,review.stock.picking user,model_review_stock_picking,base.group_user,1,1,1,0
+access_review_stock_picking_system,review.stock.picking system,model_review_stock_picking,base.group_system,1,1,1,1
+access_review_move_user,review.move user,model_review_move,base.group_user,1,1,1,1
+access_review_move_line_user,review.move.line user,model_review_move_line,base.group_user,1,1,1,1
+access_review_stage_user,review.stage user,model_review_stage,base.group_user,1,0,0,0
+access_review_stock_config_user,review.stock.config user,model_review_stock_config,base.group_user,1,0,0,0
+access_review_stage_system,review.stage system,model_review_stage,base.group_system,1,1,1,1
+access_review_stock_config_system,review.stock.config system,model_review_stock_config,base.group_system,1,1,1,1
+access_review_picking_generate_wizard_user,review.picking.generate.wizard user,model_review_picking_generate_wizard,base.group_user,1,1,1,1

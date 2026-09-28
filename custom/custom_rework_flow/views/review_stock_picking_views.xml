@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Hereda el form del repaso: agrega boton 'Volver a Preparar', campos
+         de version y campos de trazabilidad del re-proceso. -->
+    <record id="view_review_stock_picking_form_inherit_rework" model="ir.ui.view">
+        <field name="name">review.stock.picking.form.rework</field>
+        <field name="model">review.stock.picking</field>
+        <field name="inherit_id" ref="custom_review_stock_picking.view_review_stock_picking_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Campos ocultos: version y detalle del re-proceso -->
+            <xpath expr="//sheet" position="before">
+                <field name="version" invisible="1"/>
+                <field name="previous_review_id" invisible="1"/>
+                <field name="expedition_picking_ids" invisible="1"/>
+                <field name="rework_authorized_by_id" invisible="1"/>
+                <field name="rework_auth_datetime" invisible="1"/>
+                <field name="rework_reason" invisible="1"/>
+            </xpath>
+
+            <!-- Boton 'Volver a Preparar': solo repaso finalizado con prep en Hecho -->
+            <xpath expr="//header" position="inside">
+                <button name="action_return_to_preparation"
+                        type="object" string="Volver a Preparar"
+                        invisible="state != 'done'"
+                        confirm="Se cancelaran los pickings asociados y la preparacion volvera a En Proceso. Desea continuar?"/>
+            </xpath>
+
+            <!-- Ocultar 'Escanear' y 'Finalizar' si el repaso esta en estado
+                 done/cancelled/modified (ya no admite escaneo) -->
+            <xpath expr="//button[@name='action_open_scan']" position="attributes">
+                <attribute name="invisible">state not in ('available', 'in_progress')</attribute>
+            </xpath>
+
+            <!-- Mostrar version si es > 1 -->
+            <xpath expr="//div[@name='button_box']" position="after">
+                <field name="version" widget="badge"
+                       decoration-danger="version &gt; 2"
+                       decoration-warning="version == 2"
+                       invisible="version &lt;= 1"/>
+                <field name="previous_review_name" widget="badge"
+                       invisible="not previous_review_id"
+                       readonly="1"/>
+            </xpath>
+
+            <!-- Detalle del re-proceso despues de los grupos, antes del notebook -->
+            <xpath expr="//notebook" position="before">
+                <group invisible="not rework_authorized_by_id"
+                       string="Detalle del Re-proceso">
+                    <group>
+                        <field name="rework_authorized_by_id" readonly="1"/>
+                        <field name="rework_auth_datetime" readonly="1"/>
+                    </group>
+                    <group>
+                        <field name="rework_reason" readonly="1"/>
+                    </group>
+                </group>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- Hereda el search: agrega filtro de repasos modificados y agrupacion
+         por version -->
+    <record id="view_review_stock_picking_search_inherit_rework" model="ir.ui.view">
+        <field name="name">review.stock.picking.search.rework</field>
+        <field name="model">review.stock.picking</field>
+        <field name="inherit_id" ref="custom_review_stock_picking.view_review_stock_picking_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='filter_cancelled']" position="after">
+                <filter name="filter_modified" string="Modificados"
+                        domain="[('state', '=', 'modified')]"/>
+            </xpath>
+            <xpath expr="//filter[@name='group_state']" position="after">
+                <filter name="group_version" string="Version"
+                        context="{'group_by': 'version'}"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

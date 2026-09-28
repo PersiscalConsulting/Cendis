@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Accion client OWL de escaneo de repaso -->
+    <record id="action_review_scan_owl" model="ir.actions.client">
+        <field name="name">Escanear Repaso</field>
+        <field name="tag">custom_review_stock_picking.review_scan_action</field>
+    </record>
+
+</odoo>
