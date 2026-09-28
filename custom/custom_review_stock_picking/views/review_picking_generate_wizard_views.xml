@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_review_picking_generate_wizard_form" model="ir.ui.view">
+        <field name="name">review.picking.generate.wizard.form</field>
+        <field name="model">review.picking.generate.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Generar Expedición">
+                <p class="text-muted">
+                    Seleccione los repasos finalizados a agrupar en un unico
+                    movimiento de salida.
+                </p>
+                <group>
+                    <field name="review_ids">
+                        <list string="Repasos Finalizados">
+                            <field name="name"/>
+                            <field name="preparation_id"/>
+                            <field name="partner_id"/>
+                            <field name="date_end"/>
+                        </list>
+                    </field>
+                </group>
+                <footer>
+                    <button name="action_generate_picking" type="object"
+                            string="Generar Expedición" class="oe_highlight"/>
+                    <button string="Cancelar" class="btn-link"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_review_picking_generate_wizard"
+            model="ir.actions.act_window">
+        <field name="name">Generar expedición desde Repasos</field>
+        <field name="res_model">review.picking.generate.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_review_ids': active_ids}</field>
+        <field name="binding_model_id" ref="model_review_stock_picking"/>
+    </record>
+
+    <menuitem id="menu_review_picking_generate"
+              name="Generar Picking desde Repasos"
+              parent="stock.menu_stock_warehouse_mgmt"
+              action="action_review_picking_generate_wizard"
+              sequence="47"/>
+
+</odoo>

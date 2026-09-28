@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="stage_draft" model="preparation.stock.stage">
+        <field name="name">Borrador</field>
+        <field name="sequence">10</field>
+        <field name="state">draft</field>
+        <field name="color">0</field>
+    </record>
+    <record id="stage_assigned" model="preparation.stock.stage">
+        <field name="name">Asignado</field>
+        <field name="sequence">20</field>
+        <field name="state">assigned</field>
+        <field name="color">2</field>
+    </record>
+    <record id="stage_in_progress" model="preparation.stock.stage">
+        <field name="name">En Proceso</field>
+        <field name="sequence">30</field>
+        <field name="state">in_progress</field>
+        <field name="color">3</field>
+    </record>
+    <record id="stage_to_validate" model="preparation.stock.stage">
+        <field name="name">Para Validar</field>
+        <field name="sequence">35</field>
+        <field name="state">to_validate</field>
+        <field name="color">5</field>
+    </record>
+    <record id="stage_done" model="preparation.stock.stage">
+        <field name="name">Hecho</field>
+        <field name="sequence">40</field>
+        <field name="state">done</field>
+        <field name="fold" eval="True"/>
+        <field name="color">4</field>
+    </record>
+    <record id="stage_cancelled" model="preparation.stock.stage">
+        <field name="name">Cancelado</field>
+        <field name="sequence">50</field>
+        <field name="state">cancelled</field>
+        <field name="fold" eval="True"/>
+        <field name="color">1</field>
+    </record>
+</odoo>

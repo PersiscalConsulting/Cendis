@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Server action de finalizacion: EDITABLE desde Odoo web (noupdate).
+         Nombre fijado por negocio: INVENTARIO REPASO: finalizar repaso
+         La disparan tanto el boton del formulario como el boton OWL
+         (via review.stock.picking.action_finish -> server action). -->
+    <data noupdate="1">
+        <record id="action_finish_review" model="ir.actions.server">
+            <field name="name">INVENTARIO REPASO: finalizar repaso</field>
+            <field name="model_id" ref="model_review_stock_picking"/>
+            <field name="binding_model_id" ref="model_review_stock_picking"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+if not records:
+    active_ids = env.context.get('active_ids')
+    if not active_ids and env.context.get('active_id'):
+        active_ids = [env.context.get('active_id')]
+    records = env['review.stock.picking'].browse(active_ids or [])
+if not records:
+    raise UserError('No se pudo determinar el repaso a finalizar.')
+
+# 1. VALIDACION PREVIA DE CONFIGURACION (Fail-Fast)
+# -------------------------------------------------------------------
+done_stage = env['review.stage'].search([('is_final', '=', True)], limit=1)
+if not done_stage:
+    raise UserError('No existe una etapa "Finalizado" configurada.')
+
+now = datetime.datetime.now()
+eps = 0.0001
+StockMove = env['stock.move'].sudo()
+has_picked = 'picked' in StockMove._fields
+
+# 2. PROCESAMIENTO POR REPASO
+# -------------------------------------------------------------------
+for review in records:
+    if review.state != 'in_progress':
+        raise UserError('El repaso %s debe estar "En Proceso" para finalizar.' % review.name)
+
+    # 2a. VALIDACION INTEGRAL (reusa la validacion del modelo)
+    # -------------------------------------------------------------------
+    validation = review._validate_scan()
+    if not validation['ok']:
+        issues = '\n'.join('  - ' + i for i in validation['issues'])
+        raise UserError('El repaso no puede finalizar. Problemas encontrados:\n%s' % issues)
+
+    dest = review.preparation_id.location_dest_id
+    if not dest:
+        raise UserError('La preparacion de origen no tiene ubicacion de separacion definida.')
+
+    # 2b. EMPAQUETADO EN SITIO: stock.move por producto + REVS-XXXX
+    # -------------------------------------------------------------------
+    # Un stock.move por producto con ORIGEN = DESTINO = ubicacion de
+    # separacion y result_package_id = paquete. Al validarse, el stock
+    # suelto queda dentro del paquete pero SIN trasladarse de ubicacion:
+    # el traslado a la ubicacion de salida (Expedicion) recien ocurre en
+    # la server action 'INVENTARIO REPASO: generar picking de salida',
+    # junto con la creacion del stock.picking de salida. El historial
+    # del lote registra REVS-XXXX.
+    packaged = review.move_ids.move_line_ids.filtered(
+        lambda l: l.package_id and l.qty > eps
+    )
+    moves_by_product = {}
+    move_lines_vals_by_product = {}
+
+    for ml in packaged.sorted('id'):
+        product = ml.product_id
+        ml_vals = {
+            'product_id': product.id,
+            'quantity': ml.qty,
+            'qty_done': ml.qty,
+            'product_uom_id': product.uom_id.id,
+            'location_id': dest.id,
+            'location_dest_id': dest.id,
+            'company_id': review.company_id.id,
+            'reference': review.name,
+            'result_package_id': ml.package_id.id,
+        }
+        if ml.lot_id:
+            ml_vals['lot_id'] = ml.lot_id.id
+        if ml.owner_id:
+            ml_vals['owner_id'] = ml.owner_id.id
+        move_lines_vals_by_product.setdefault(product.id, []).append(ml_vals)
+
+    for prod_id, ml_vals_list in move_lines_vals_by_product.items():
+        product = env['product.product'].browse(prod_id)
+        move_vals = {
+            'name': '%s - %s' % (review.name, product.display_name),
+            'reference': review.name,
+            'origin': review.name,
+            'product_id': product.id,
+            'product_uom_qty': sum(v['quantity'] for v in ml_vals_list),
+            'product_uom': product.uom_id.id,
+            'location_id': dest.id,
+            'location_dest_id': dest.id,
+            'company_id': review.company_id.id,
+            'move_line_ids': [(0, 0, v) for v in ml_vals_list],
+        }
+        if has_picked:
+            move_vals['picked'] = True
+        move = StockMove.create(move_vals)
+        moves_by_product[product.id] = move
+
+    # 2c. EJECUTAR MOVIMIENTOS EN LOTE
+    # -------------------------------------------------------------------
+    if moves_by_product:
+        for move in moves_by_product.values():
+            move._action_confirm()
+            move._action_assign()
+        for move in moves_by_product.values():
+            move._action_done()
+
+    # 3. CAMBIAR A ETAPA FINALIZADO
+    # -------------------------------------------------------------------
+    review.write({
+        'stage_id': done_stage.id,
+        'date_end': now,
+    })
+    review.message_post(
+        body='Repaso finalizado por %s: stock empaquetado en la ubicacion de '
+             'separacion (movimientos %s). El traslado a la ubicacion de salida '
+             'ocurre al generar el picking de salida.'
+             % (env.user.name, review.name)
+    )
+]]></field>
+        </record>
+    </data>
+
+</odoo>
