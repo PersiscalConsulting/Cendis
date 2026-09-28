@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="stage_available" model="review.stage">
+        <field name="name">Disponible</field>
+        <field name="sequence">10</field>
+        <field name="state">available</field>
+        <field name="is_initial" eval="True"/>
+        <field name="is_final" eval="False"/>
+        <field name="is_cancel" eval="False"/>
+        <field name="color">2</field>
+    </record>
+    <record id="stage_in_progress" model="review.stage">
+        <field name="name">En Proceso</field>
+        <field name="sequence">20</field>
+        <field name="state">in_progress</field>
+        <field name="is_initial" eval="False"/>
+        <field name="is_final" eval="False"/>
+        <field name="is_cancel" eval="False"/>
+        <field name="color">3</field>
+    </record>
+    <record id="stage_done" model="review.stage">
+        <field name="name">Finalizado</field>
+        <field name="sequence">30</field>
+        <field name="state">done</field>
+        <field name="is_initial" eval="False"/>
+        <field name="is_final" eval="True"/>
+        <field name="is_cancel" eval="False"/>
+        <field name="fold" eval="True"/>
+        <field name="color">4</field>
+    </record>
+    <record id="stage_cancelled" model="review.stage">
+        <field name="name">Cancelado</field>
+        <field name="sequence">40</field>
+        <field name="state">cancelled</field>
+        <field name="is_initial" eval="False"/>
+        <field name="is_final" eval="False"/>
+        <field name="is_cancel" eval="True"/>
+        <field name="fold" eval="True"/>
+        <field name="color">1</field>
+    </record>
+</odoo>

@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="custom_preparation_stock.PreparationScanAction">
+
+        <div t-if="state.loading" class="o_prep_stock_loading">
+            <i class="fa fa-spinner fa-spin"/> Cargando preparación...
+        </div>
+
+        <div t-elif="!state.exists" class="o_prep_stock_loading">
+            <i class="fa fa-ban"/> Preparación no encontrada.
+        </div>
+
+        <div t-else="" class="o_prep_stock_container">
+
+            <!-- Encabezado -->
+            <div class="o_prep_stock_header">
+                <div class="o_prep_stock_top_row">
+                    <button class="btn btn-link o_prep_stock_back_btn" t-on-click="onBack">
+                        <i class="fa fa-arrow-left"/> Volver
+                    </button>
+                    <div class="o_prep_stock_title">
+                        <h2><i class="fa fa-tasks"/> Preparación de Stock
+                            <span t-if="state.prepName" class="o_prep_stock_name ms-2"
+                                  t-esc="state.prepName"/>
+                        </h2>
+                    </div>
+                    <div class="o_prep_stock_header_kpi">
+                        <span class="o_prep_stock_header_kpi_caption">Total</span>
+                        <span class="o_prep_stock_header_kpi_value">
+                            <t t-esc="totalScanned"/> / <t t-esc="totalDemanded"/>
+                            <small t-if="totalUomName" class="o_prep_stock_header_kpi_uom"
+                                   t-esc="totalUomName"/>
+                        </span>
+                    </div>
+                    <div class="o_prep_stock_actions ms-2 d-flex align-items-center gap-2">
+                        <button class="btn btn-light" t-on-click="onCancel">
+                            <i class="fa fa-times"/> Cancelar
+                        </button>
+                        <button class="btn btn-primary" t-on-click="onFinish"
+                                t-att-disabled="state.submitting">
+                            <i t-att-class="state.submitting ? 'fa fa-spinner fa-spin' : 'fa fa-check'"/>
+                            Finalizar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="o_prep_stock_meta">
+                    <span t-if="state.currentLocation" class="o_prep_stock_meta_badge o_prep_stock_current_loc_badge">
+                        <i class="fa fa-map-marker"/> Ubicación Actual: <strong t-esc="state.currentLocation"/>
+                    </span>
+                    <span t-if="!state.currentLocation" class="o_prep_stock_meta_badge o_prep_stock_no_loc_badge">
+                        <i class="fa fa-map-marker"/> Sin ubicación seleccionada
+                    </span>
+                    <button type="button" class="btn btn-link btn-sm o_prep_stock_meta_toggle"
+                            t-on-click="toggleMeta"
+                            t-att-aria-expanded="state.metaExpanded"
+                            aria-label="Ver más detalles">
+                        <i class="fa fa-info-circle"/> Detalles
+                        <i t-att-class="'fa ms-1 ' + (state.metaExpanded ? 'fa-chevron-up' : 'fa-chevron-down')"/>
+                    </button>
+
+                    <t t-if="state.metaExpanded">
+                        <span class="o_prep_stock_meta_badge">
+                            Propietario: <strong t-esc="state.ownerName || '-'"/>
+                        </span>
+                        <span class="o_prep_stock_meta_badge" t-if="state.partnerName">
+                            Destino: <t t-esc="state.partnerName"/>
+                        </span>
+                        <span class="o_prep_stock_meta_badge" t-if="state.destLocation">
+                            Separación: <t t-esc="state.destLocation"/>
+                        </span>
+                        <span t-if="state.isRework"
+                              t-att-class="'o_prep_stock_chip o_prep_stock_chip_sm ' + (
+                                (state.version || 1) > 2 ? 'o_prep_stock_chip_danger' :
+                                (state.version || 1) == 2 ? 'o_prep_stock_chip_warning' : 'o_prep_stock_chip_accent')"
+                              title="Este es un re-proceso: la versión indica cuántas veces volvió a prepararse.">
+                            <i class="fa fa-refresh"/> Re-Proceso v<t t-esc="state.version || 1"/>
+                        </span>
+                        <span t-if="state.canEditDemand" class="o_prep_stock_meta_badge o_prep_stock_admin_hint">
+                            <i class="fa fa-pencil"/> Edición administrativa activa (cambios se reflejan en vivo)
+                        </span>
+                    </t>
+                </div>
+
+                <div class="o_prep_stock_status_band">
+                    <div t-if="state.isFinished" class="o_prep_stock_finished_banner">
+                        <i class="fa fa-lock"/>
+                        Esta preparación ya no está en escaneo. Regrese al formulario.
+                    </div>
+
+                    <div t-att-class="'alert alert-' + state.messageType + ' o_prep_stock_message d-flex justify-content-between align-items-center'"
+                         t-if="state.message" role="alert">
+                        <span class="o_prep_stock_message_text">
+                            <i t-att-class="'fa ' + (
+                                state.messageType === 'success' ? 'fa-check-circle' :
+                                state.messageType === 'danger' ? 'fa-exclamation-triangle' :
+                                state.messageType === 'warning' ? 'fa-exclamation-circle' :
+                                'fa-info-circle')"/>
+                            <t t-esc="state.message"/>
+                        </span>
+                        <button type="button" class="btn-close o_prep_stock_message_close"
+                                t-on-click="closeMessage" aria-label="Cerrar mensaje"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Entrada de codigo -->
+            <div t-if="!state.isFinished" class="o_prep_stock_input_row">
+                <div class="o_prep_stock_scanner_icon">
+                    <i class="fa fa-barcode"/>
+                </div>
+                <input type="text" ref="scanInput" class="form-control form-control-lg"
+                       placeholder="Escanee ubicación, lote o producto..."
+                       t-att-value="state.barcodeInput"
+                       t-on-input="onBarcodeInput"
+                       t-on-keydown="onInputKeydown"/>
+                <button class="btn btn-primary btn-lg" t-on-click="onSubmitBarcode">
+                    <i class="fa fa-plus"/> Escanear
+                </button>
+            </div>
+
+            <!-- Paneles -->
+            <div class="o_prep_stock_panels">
+
+                <!-- Panel izquierdo: productos demandados -->
+                <div class="o_prep_stock_lines_panel">
+                    <h3>Productos Demandados (<t t-esc="state.lines.length"/>)</h3>
+                    <div t-if="state.lines.length === 0" class="o_prep_stock_empty">
+                        No hay líneas demandadas.
+                    </div>
+                    <div t-foreach="state.lines" t-as="line" t-key="line.id"
+                         t-att-class="'o_prep_stock_line_card' +
+                            ' state_' + line.state_line +
+                            (line.id === state.selectedLineId ? ' selected' : '')"
+                         role="button" tabindex="0"
+                         t-att-aria-pressed="state.selectedLineId === line.id"
+                         t-att-aria-label="'Seleccionar ' + line.product_name"
+                         t-on-click="() => this.selectLine(line.id)"
+                         t-on-keydown="(ev) => this.onLineCardKeydown(line, ev)">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <span class="o_prep_stock_product" t-esc="line.product_name"/>
+                            <span class="d-flex align-items-center gap-1">
+                                <i t-if="line.scan_lines.some(s => s.is_expired)"
+                                   class="fa fa-exclamation-triangle text-danger"
+                                   title="Contiene lotes vencidos"/>
+                                <span t-att-class="'o_prep_stock_chip o_prep_stock_chip_sm ' + (
+                                    line.state_line === 'done' ? 'o_prep_stock_chip_success' :
+                                    line.state_line === 'short' ? 'o_prep_stock_chip_danger' :
+                                    line.state_line === 'in_progress' ? 'o_prep_stock_chip_warning' : '')">
+                                    <i t-att-class="'fa ' + (
+                                        line.state_line === 'done' ? 'fa-check-circle' :
+                                        line.state_line === 'short' ? 'fa-exclamation-triangle' :
+                                        line.state_line === 'in_progress' ? 'fa-clock-o' : 'fa-circle-o')"/>
+                                    <t t-esc="stateLabels[line.state_line] || line.state_line"/>
+                                </span>
+                            </span>
+                        </div>
+                        <div class="o_prep_stock_qty_row">
+                            <strong t-esc="line.qty_scanned"/>
+                            / <t t-esc="line.qty_demanded"/> <t t-esc="line.uom_name"/>
+                            <span t-if="line.remaining_qty > 0" class="o_prep_stock_remaining">
+                                (faltan <t t-esc="line.remaining_qty"/>)
+                            </span>
+                        </div>
+                        <div class="o_prep_stock_loc_row" t-if="line.locations.length">
+                            <i class="fa fa-map-marker"/>
+                            <t t-foreach="line.locations" t-as="loc" t-key="loc">
+                                <span class="o_prep_stock_loc_badge" t-esc="loc"/>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel derecho: detalle de la linea seleccionada -->
+                <div class="o_prep_stock_detail_panel">
+                    <div t-if="!selectedLine" class="o_prep_stock_empty">
+                        Seleccione una línea para ver el detalle.
+                    </div>
+                    <div t-else="">
+                        <h3><t t-esc="selectedLine.product_name"/></h3>
+                        <div class="o_prep_stock_summary_grid">
+                            <div class="card"><div class="card-body p-2">
+                                <div class="o_prep_stock_kpi_label">Demandado</div>
+                                <div class="o_prep_stock_kpi_value" t-esc="selectedLine.qty_demanded"/>
+                            </div></div>
+                            <div class="card"><div class="card-body p-2">
+                                <div class="o_prep_stock_kpi_label">Escaneado</div>
+                                <div class="o_prep_stock_kpi_value" t-esc="selectedLine.qty_scanned"/>
+                            </div></div>
+                            <div class="card"><div class="card-body p-2">
+                                <div class="o_prep_stock_kpi_label">Restante</div>
+                                <div class="o_prep_stock_kpi_value" t-esc="selectedLine.remaining_qty"/>
+                            </div></div>
+                        </div>
+
+                        <table class="table table-sm table-hover o_prep_stock_scan_table">
+                            <thead>
+                                <tr>
+                                    <th>Ubicación</th>
+                                    <th>Lote</th>
+                                    <th>Paquete</th>
+                                    <th class="text-end">Cantidad</th>
+                                    <th t-if="state.allowDeleteEnabled"/>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="cumulativeQty" t-value="0"/>
+                                <t t-foreach="selectedLine.scan_lines" t-as="scan" t-key="scan.id">
+                                    <t t-set="cumulativeQty" t-value="cumulativeQty + scan.qty"/>
+                                    <t t-set="isExcessScan" t-value="state.flags.allow_over_scan and cumulativeQty > selectedLine.qty_demanded"/>
+                                    <t t-set="isExpiredScan" t-value="scan.is_expired"/>
+                                    <tr t-att-class="(isExcessScan ? 'o_prep_stock_excess_row' : '') + (isExpiredScan ? ' o_prep_stock_expired_row' : '')">
+                                        <td>
+                                            <span t-att-class="scan.moved_to_separation ? 'text-success' : ''">
+                                                <i t-if="scan.moved_to_separation"
+                                                   class="fa fa-map-marker me-1"
+                                                   title="Stock ya trasladado a separacion"/>
+                                                <t t-esc="scan.current_location_name || scan.location_name"/>
+                                            </span>
+                                            <div t-if="scan.moved_to_separation and scan.current_location_name != scan.location_name"
+                                                 class="small text-muted">
+                                                origen: <t t-esc="scan.location_name"/>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <t t-esc="scan.lot_name || '-'"/>
+                                            <span t-if="isExpiredScan"
+                                                  class="o_prep_stock_chip o_prep_stock_chip_sm o_prep_stock_chip_danger ms-1"
+                                                  title="Lote vencido">
+                                                <i class="fa fa-clock-o"/> Vencido
+                                            </span>
+                                            <span t-if="isExcessScan"
+                                                  class="o_prep_stock_chip o_prep_stock_chip_sm o_prep_stock_chip_warning ms-1"
+                                                  title="Cantidad escaneada por encima de la demanda">
+                                                <i class="fa fa-exclamation-circle"/> Exceso
+                                            </span>
+                                        </td>
+                                        <td t-esc="scan.package_name || '-'"/>
+                                        <td class="text-end">
+                                            <input t-if="state.manualQtyEnabled and !state.isFinished"
+                                                   type="number" min="0" step="any"
+                                                   t-att-class="'form-control form-control-sm text-end o_prep_stock_qty_input' + (isExcessScan ? ' o_prep_stock_excess' : '')"
+                                                   t-att-value="scan.qty"
+                                                   t-on-change="(ev) => this.onScanQtyChange(scan, ev)"/>
+                                            <span t-else=""
+                                                  t-att-class="isExcessScan ? 'o_prep_stock_excess_text' : ''">
+                                                <t t-esc="scan.qty"/>
+                                            </span>
+                                        </td>
+                                        <td t-if="state.allowDeleteEnabled" class="text-end">
+                                            <button t-if="!state.isFinished"
+                                                    class="btn btn-link btn-sm text-danger p-0"
+                                                    title="Eliminar línea escaneada"
+                                                    aria-label="Eliminar línea escaneada"
+                                                    t-on-click="() => this.onDeleteScan(scan)">
+                                                <i class="fa fa-trash"/>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </t>
+                                <tr t-if="selectedLine.scan_lines.length === 0">
+                                    <td t-att-colspan="state.allowDeleteEnabled ? 5 : 4"
+                                        class="text-center text-muted">
+                                        Sin escaneos en esta línea.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </t>
+
+</templates>

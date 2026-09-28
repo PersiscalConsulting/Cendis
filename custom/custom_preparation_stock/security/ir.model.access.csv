@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_preparation_stock_user,preparation.stock user,model_preparation_stock,base.group_user,1,1,1,0
+access_preparation_stock_system,preparation.stock system,model_preparation_stock,base.group_system,1,1,1,1
+access_preparation_stock_line_user,preparation.stock.line user,model_preparation_stock_line,base.group_user,1,1,1,1
+access_preparation_stock_scan_line_user,preparation.stock.scan.line user,model_preparation_stock_scan_line,base.group_user,1,1,1,1
+access_preparation_stock_stage_user,preparation.stock.stage user,model_preparation_stock_stage,base.group_user,1,0,0,0
+access_preparation_stock_config_user,preparation.stock.config user,model_preparation_stock_config,base.group_user,1,0,0,0
+access_preparation_stock_stage_system,preparation.stock.stage system,model_preparation_stock_stage,base.group_system,1,1,1,1
+access_preparation_stock_config_system,preparation.stock.config system,model_preparation_stock_config,base.group_system,1,1,1,1
+access_stock_quant_reservation_user,stock.quant.reservation user,model_stock_quant_reservation,base.group_user,1,1,1,1
+access_stock_quant_reservation_system,stock.quant.reservation system,model_stock_quant_reservation,base.group_system,1,1,1,1
