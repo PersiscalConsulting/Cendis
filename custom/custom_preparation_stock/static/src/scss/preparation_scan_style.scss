@@ -1,28 +1,34 @@
 ﻿:root {
-    --wms-accent: #1971c2;
-    --wms-accent-strong: #1864ab;
-    --wms-accent-bg: #e7f5ff;
-    --wms-accent-border: #74c0fc;
-    --wms-accent-soft-border: rgba(25, 113, 194, 0.15);
-    --wms-success: #2b8a3e;
-    --wms-success-bg: #f4fbf6;
-    --wms-success-border: #69db7c;
-    --wms-danger: #c92a2a;
-    --wms-danger-bg: #fff5f5;
-    --wms-danger-border: #ffc9c9;
-    --wms-warning: #e8590c;
-    --wms-warning-bg: #fff4e6;
-    --wms-warning-border: #ffd8a8;
+    // ---- Acento: anclado a la marca de Odoo ----
+    // La rampa se deriva de --o-brand-primary, asi que hereda el tema de la base
+    // y no puede desarmonizarse del cromo nativo. Fallback: ciruela de Odoo 17.
+    --wms-accent: var(--o-brand-primary, #714B67);
+    --wms-accent-strong: color-mix(in srgb, var(--o-brand-primary, #714B67) 78%, #000000);
+    --wms-accent-bg: color-mix(in srgb, var(--o-brand-primary, #714B67) 14%, #ffffff);
+    --wms-accent-border: color-mix(in srgb, var(--o-brand-primary, #714B67) 26%, #ffffff);
+    --wms-accent-soft-border: color-mix(in srgb, var(--o-brand-primary, #714B67) 65%, #ffffff);
+    // ---- Estados: mismo peso visual (L* ~29) y >= 4.5:1 sobre su propio tinte ----
+    --wms-success: #256e34;
+    --wms-success-bg: color-mix(in srgb, #256e34 14%, #ffffff);
+    --wms-success-border: color-mix(in srgb, #256e34 32%, #ffffff);
+    --wms-danger: #b02a2a;
+    --wms-danger-bg: color-mix(in srgb, #b02a2a 16%, #ffffff);
+    --wms-danger-border: color-mix(in srgb, #b02a2a 34%, #ffffff);
+    --wms-warning: #a34206;
+    --wms-warning-bg: color-mix(in srgb, #a34206 14%, #ffffff);
+    --wms-warning-border: color-mix(in srgb, #a34206 36%, #ffffff);
+    // ---- Neutros ----
     --wms-text: #212529;
     --wms-text-strong: #343a40;
     --wms-text-muted: #52606d;
-    --wms-border: #dee2e6;
-    --wms-border-light: #e3e6ea;
+    --wms-border: #cfd6dd;
+    --wms-border-light: #d7dce2;
     --wms-bg: #f5f6f8;
-    --wms-bg-light: #f8f9fa;
+    --wms-bg-light: #f1f3f5;
     --wms-surface: #ffffff;
-    --wms-excess-bg: #fff4e6;
-    --wms-foreign-bg: #fff5f5;
+    // ---- Tintes de fila: los cuatro estados deben distinguirse entre si ----
+    --wms-excess-bg: color-mix(in srgb, #a34206 20%, #ffffff);
+    --wms-foreign-bg: color-mix(in srgb, #a82a5c 14%, #ffffff);
     --wms-shadow: rgba(0, 0, 0, 0.08);
 }
 
@@ -30,7 +36,7 @@
     padding: 48px;
     text-align: center;
     font-size: 18px;
-    color: #666;
+    color: var(--wms-text-muted);
 }
 
 .o_prep_stock_container {
@@ -122,7 +128,7 @@
             .o_prep_stock_header_kpi_value {
                 font-size: 16px;
                 font-weight: 700;
-                color: var(--wms-text-strong);
+                color: var(--wms-accent);
                 line-height: 1;
 
                 .o_prep_stock_header_kpi_uom {
@@ -147,12 +153,12 @@
         margin-top: 8px;
 
         .o_prep_stock_meta_badge {
-            background: var(--wms-bg-light);
-            border: 1px solid var(--wms-border-light);
+            background: var(--wms-accent-bg);
+            border: 1px solid var(--wms-accent-border);
             border-radius: 4px;
             padding: 3px 10px;
             font-size: 12.5px;
-            color: var(--wms-text-muted);
+            color: var(--wms-accent-strong);
         }
 
         .o_prep_stock_admin_hint {
@@ -219,14 +225,14 @@
         gap: 12px;
         align-items: center;
         padding: 10px 16px;
-        background: linear-gradient(180deg, #ffffff 0%, #f6f9fb 100%);
+        background: linear-gradient(180deg, var(--wms-surface) 0%, var(--wms-bg-light) 100%);
         border-bottom: 1px solid var(--wms-border-light);
 
         .o_prep_stock_scanner_icon {
             font-size: 19px;
             color: var(--wms-accent);
             background: var(--wms-accent-bg);
-            border: 1px solid var(--wms-accent-border);
+            border: 1px solid var(--wms-accent);
             border-radius: 8px;
             width: 44px;
             height: 44px;
@@ -237,7 +243,7 @@
         }
 
         .form-control:focus {
-            border-color: var(--wms-accent-border);
+            border-color: var(--wms-accent);
             box-shadow: 0 0 0 0.2rem var(--wms-accent-soft-border);
         }
     }
@@ -305,14 +311,17 @@
     }
 
     .o_prep_stock_line_card {
-        border: 1px solid var(--wms-border-light);
+        border: 1px solid var(--wms-accent-border);
         border-radius: 8px;
         padding: 10px 12px;
         margin-bottom: 8px;
         cursor: pointer;
         transition: box-shadow .12s ease, border-color .12s ease;
 
-        &:hover { box-shadow: 0 1px 4px rgba(0, 0, 0, .08); }
+        &:hover {
+            border-color: var(--wms-accent-strong);
+            box-shadow: 0 0 0 2px var(--wms-accent-soft-border);
+        }
 
         &:focus-visible {
             outline: 2px solid var(--wms-accent);
@@ -325,16 +334,20 @@
         }
 
         &.state_done {
-            background-color: #f6fdf8;
+            background-color: var(--wms-success-bg);
+            border-color: var(--wms-success-border);
         }
         &.state_in_progress {
-            background-color: #fffbf0;
+            background-color: var(--wms-warning-bg);
+            border-color: var(--wms-warning-border);
         }
         &.state_short {
-            background-color: #fff5f5;
+            background-color: var(--wms-danger-bg);
+            border-color: var(--wms-danger-border);
         }
         &.state_pending {
-            background-color: #f8f9fa;
+            background-color: var(--wms-bg-light);
+            border-color: var(--wms-border);
         }
 
         .o_prep_stock_product {
@@ -450,7 +463,7 @@
         margin-bottom: 12px;
 
         .card {
-            border-top: 3px solid var(--wms-accent-border);
+            border-top: 3px solid var(--wms-accent);
         }
 
         .o_prep_stock_kpi_label {
@@ -473,7 +486,7 @@
             font-size: 12px;
             text-transform: uppercase;
             color: var(--wms-text-muted);
-            border-bottom: 1px solid #dee2e6 !important;
+            border-bottom: 1px solid var(--wms-border) !important;
         }
 
         td { vertical-align: middle; }
@@ -488,7 +501,7 @@
     .o_prep_stock_excess_row {
         background-color: var(--wms-excess-bg) !important;
 
-        td { color: var(--wms-danger); }
+        td { color: var(--wms-warning); }
     }
 
     .o_prep_stock_excess {

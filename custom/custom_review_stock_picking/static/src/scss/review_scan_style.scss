@@ -1,28 +1,34 @@
 ﻿:root {
-    --wms-accent: #1971c2;
-    --wms-accent-strong: #1864ab;
-    --wms-accent-bg: #e7f5ff;
-    --wms-accent-border: #74c0fc;
-    --wms-accent-soft-border: rgba(25, 113, 194, 0.15);
-    --wms-success: #2b8a3e;
-    --wms-success-bg: #f4fbf6;
-    --wms-success-border: #69db7c;
-    --wms-danger: #c92a2a;
-    --wms-danger-bg: #fff5f5;
-    --wms-danger-border: #ffc9c9;
-    --wms-warning: #e8590c;
-    --wms-warning-bg: #fff4e6;
-    --wms-warning-border: #ffd8a8;
+    // ---- Acento: anclado a la marca de Odoo ----
+    // La rampa se deriva de --o-brand-primary, asi que hereda el tema de la base
+    // y no puede desarmonizarse del cromo nativo. Fallback: ciruela de Odoo 17.
+    --wms-accent: var(--o-brand-primary, #714B67);
+    --wms-accent-strong: color-mix(in srgb, var(--o-brand-primary, #714B67) 78%, #000000);
+    --wms-accent-bg: color-mix(in srgb, var(--o-brand-primary, #714B67) 14%, #ffffff);
+    --wms-accent-border: color-mix(in srgb, var(--o-brand-primary, #714B67) 26%, #ffffff);
+    --wms-accent-soft-border: color-mix(in srgb, var(--o-brand-primary, #714B67) 65%, #ffffff);
+    // ---- Estados: mismo peso visual (L* ~29) y >= 4.5:1 sobre su propio tinte ----
+    --wms-success: #256e34;
+    --wms-success-bg: color-mix(in srgb, #256e34 14%, #ffffff);
+    --wms-success-border: color-mix(in srgb, #256e34 32%, #ffffff);
+    --wms-danger: #b02a2a;
+    --wms-danger-bg: color-mix(in srgb, #b02a2a 16%, #ffffff);
+    --wms-danger-border: color-mix(in srgb, #b02a2a 34%, #ffffff);
+    --wms-warning: #a34206;
+    --wms-warning-bg: color-mix(in srgb, #a34206 14%, #ffffff);
+    --wms-warning-border: color-mix(in srgb, #a34206 36%, #ffffff);
+    // ---- Neutros ----
     --wms-text: #212529;
     --wms-text-strong: #343a40;
     --wms-text-muted: #52606d;
-    --wms-border: #dee2e6;
-    --wms-border-light: #e3e6ea;
+    --wms-border: #cfd6dd;
+    --wms-border-light: #d7dce2;
     --wms-bg: #f5f6f8;
-    --wms-bg-light: #f8f9fa;
+    --wms-bg-light: #f1f3f5;
     --wms-surface: #ffffff;
-    --wms-excess-bg: #fff4e6;
-    --wms-foreign-bg: #fff5f5;
+    // ---- Tintes de fila: los cuatro estados deben distinguirse entre si ----
+    --wms-excess-bg: color-mix(in srgb, #a34206 20%, #ffffff);
+    --wms-foreign-bg: color-mix(in srgb, #a82a5c 14%, #ffffff);
     --wms-shadow: rgba(0, 0, 0, 0.08);
 }
 
@@ -30,7 +36,7 @@
     padding: 48px;
     text-align: center;
     font-size: 18px;
-    color: #666;
+    color: var(--wms-text-muted);
 }
 
 .o_review_container {
@@ -39,7 +45,7 @@
     height: 100%;
     min-height: 0;
     padding-bottom: 16px;
-    background: #f5f6f8;
+    background: var(--wms-bg);
 
     // ---- Header ----
     .o_review_header {
@@ -122,7 +128,7 @@
             .o_review_header_kpi_value {
                 font-size: 16px;
                 font-weight: 700;
-                color: var(--wms-text-strong);
+                color: var(--wms-accent);
                 line-height: 1;
             }
         }
@@ -144,12 +150,12 @@
         margin-top: 8px;
 
         .o_review_meta_badge {
-            background: var(--wms-bg-light);
-            border: 1px solid var(--wms-border-light);
+            background: var(--wms-accent-bg);
+            border: 1px solid var(--wms-accent-border);
             border-radius: 4px;
             padding: 3px 10px;
             font-size: 12.5px;
-            color: var(--wms-text-muted);
+            color: var(--wms-accent-strong);
         }
 
         .o_review_meta_toggle {
@@ -202,14 +208,14 @@
         gap: 12px;
         align-items: center;
         padding: 10px 16px;
-        background: linear-gradient(180deg, #ffffff 0%, #f6f9fb 100%);
-        border-bottom: 1px solid #dfe2e7;
+        background: linear-gradient(180deg, var(--wms-surface) 0%, var(--wms-bg-light) 100%);
+        border-bottom: 1px solid var(--wms-border-light);
 
         .o_review_scanner_icon {
             font-size: 19px;
             color: var(--wms-accent);
             background: var(--wms-accent-bg);
-            border: 1px solid var(--wms-accent-border);
+            border: 1px solid var(--wms-accent);
             border-radius: 8px;
             width: 44px;
             height: 44px;
@@ -220,7 +226,7 @@
         }
 
         .form-control:focus {
-            border-color: var(--wms-accent-border);
+            border-color: var(--wms-accent);
             box-shadow: 0 0 0 0.2rem var(--wms-accent-soft-border);
         }
     }
@@ -266,19 +272,22 @@
             h3 {
                 font-size: 15px;
                 margin: 0;
-                color: #343a40;
+                color: var(--wms-text-strong);
             }
         }
 
         .o_review_sidebar_item {
-            border: 1px solid var(--wms-border-light);
+            border: 1px solid var(--wms-accent-border);
             border-radius: 6px;
             padding: 8px 10px;
+            background: var(--wms-bg-light);
             cursor: pointer;
             transition: border-color 0.12s ease, box-shadow 0.12s ease;
 
             &:hover {
-                border-color: var(--wms-accent-border);
+                border-color: var(--wms-accent-strong);
+                box-shadow: 0 0 0 2px var(--wms-accent-soft-border);
+                background: var(--wms-accent-bg);
             }
 
             &:focus-visible {
@@ -330,7 +339,7 @@
         h3 {
             font-size: 15px;
             margin-bottom: 12px;
-            color: #343a40;
+            color: var(--wms-text-strong);
         }
 
         .o_review_empty {
@@ -342,7 +351,7 @@
 
     // ---- Move cards ----
     .o_review_move_card {
-        border: 1px solid var(--wms-border-light);
+        border: 1px solid var(--wms-accent-border);
         border-radius: 8px;
         padding: 10px 12px;
         margin-bottom: 8px;
@@ -350,8 +359,9 @@
         transition: box-shadow 0.12s ease, border-color 0.12s ease;
 
         &:hover {
-            border-color: var(--wms-border);
-            box-shadow: 0 1px 3px var(--wms-shadow);
+            border-color: var(--wms-accent-strong);
+            box-shadow: 0 0 0 2px var(--wms-accent-soft-border);
+            background: var(--wms-accent-bg);
         }
 
         &.selected {
@@ -373,7 +383,7 @@
         .o_review_move_product {
             flex: 1;
             font-weight: 600;
-            color: #212529;
+            color: var(--wms-text);
         }
 
         .o_review_move_counter {
@@ -410,7 +420,7 @@
 
     .o_review_move_lines {
         margin-top: 8px;
-        border-top: 1px solid #f1f3f5;
+        border-top: 1px solid var(--wms-border-light);
         padding-top: 6px;
 
         table {
@@ -420,7 +430,7 @@
                 font-size: 11px;
                 text-transform: uppercase;
                 color: var(--wms-text-muted);
-                border-bottom: 1px solid #dee2e6 !important;
+                border-bottom: 1px solid var(--wms-border) !important;
             }
 
             td {
@@ -546,6 +556,9 @@
         gap: 12px;
         margin-bottom: 12px;
         flex-wrap: wrap;
+        border: 1px solid var(--wms-accent-border);
+        border-radius: 8px;
+        padding: 10px 12px;
 
         h3 {
             margin: 0;
@@ -555,6 +568,16 @@
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
+
+            .o_review_chip {
+                background: var(--wms-accent-bg);
+                border-color: var(--wms-accent-border);
+                color: var(--wms-accent-strong);
+
+                i {
+                    color: var(--wms-accent);
+                }
+            }
         }
 
         .o_review_package_fields {
@@ -573,7 +596,12 @@
                     text-transform: uppercase;
                     letter-spacing: 0.04em;
                     margin-bottom: 3px;
-                    color: var(--wms-text-muted);
+                    color: var(--wms-accent-strong);
+                    background: var(--wms-accent-bg);
+                    border: 1px solid var(--wms-accent-border);
+                    border-radius: 4px;
+                    padding: 1px 6px;
+                    display: inline-block;
                 }
 
                 input,
@@ -596,7 +624,7 @@
                 font-size: 11px;
                 text-transform: uppercase;
                 color: var(--wms-text-muted);
-                border-bottom: 1px solid #dee2e6 !important;
+                border-bottom: 1px solid var(--wms-border) !important;
             }
 
             td {
@@ -659,7 +687,7 @@
     }
 
     .o_review_modal {
-        background: #fff;
+        background: var(--wms-surface);
         border-radius: 12px;
         width: 90%;
         max-width: 560px;
@@ -674,7 +702,7 @@
         align-items: center;
         justify-content: space-between;
         padding: 16px 20px;
-        border-bottom: 1px solid #dee2e6;
+        border-bottom: 1px solid var(--wms-border);
 
         h3 {
             margin: 0;
@@ -700,16 +728,16 @@
         gap: 8px;
         margin-bottom: 10px;
         padding: 8px 10px;
-        background: #f8f9fa;
+        background: var(--wms-bg-light);
         border-radius: 6px;
-        border: 1px solid #e9ecef;
+        border: 1px solid var(--wms-border-light);
 
         .o_review_modal_summary_item {
             font-size: 12.5px;
-            color: #495057;
+            color: var(--wms-text);
 
             strong {
-                color: #212529;
+                color: var(--wms-text);
             }
 
             .text-muted {
@@ -733,7 +761,7 @@
     .o_review_modal_lines {
         max-height: 260px;
         overflow-y: auto;
-        border: 1px solid #dee2e6;
+        border: 1px solid var(--wms-border);
         border-radius: 6px;
         margin-bottom: 12px;
     }
@@ -743,7 +771,7 @@
         align-items: center;
         gap: 8px;
         padding: 6px 10px;
-        border-bottom: 1px solid #f1f3f5;
+        border-bottom: 1px solid var(--wms-border-light);
         cursor: pointer;
         font-size: 13px;
         transition: background 0.1s ease;
@@ -753,7 +781,7 @@
         }
 
         &:hover {
-            background: #f8f9fa;
+            background: var(--wms-bg-light);
         }
 
         &.selected {
@@ -770,7 +798,7 @@
 
         .o_review_modal_line_product {
             font-weight: 600;
-            color: #212529;
+            color: var(--wms-text);
         }
 
         .o_review_modal_line_lot {
@@ -781,14 +809,14 @@
         .o_review_modal_line_owner {
             color: var(--wms-text-muted);
             font-size: 11px;
-            background: #f1f3f5;
+            background: var(--wms-bg-light);
             border-radius: 3px;
             padding: 1px 6px;
         }
 
         .o_review_modal_line_qty {
             font-weight: 600;
-            color: #495057;
+            color: var(--wms-text);
         }
     }
 
@@ -820,7 +848,7 @@
         justify-content: flex-end;
         gap: 8px;
         padding: 12px 20px;
-        border-top: 1px solid #dee2e6;
+        border-top: 1px solid var(--wms-border);
     }
 
     // ---- Verify modal ----
@@ -881,7 +909,7 @@
         font-size: 14px;
         margin-top: 16px;
         margin-bottom: 8px;
-        color: #343a40;
+        color: var(--wms-text-strong);
     }
 
     .o_review_verify_diff td {
@@ -889,7 +917,7 @@
     }
 
     .o_review_verify_pkg {
-        border: 1px solid #dee2e6;
+        border: 1px solid var(--wms-border);
         border-radius: 6px;
         padding: 8px 12px;
         margin-bottom: 8px;
