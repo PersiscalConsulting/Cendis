@@ -130,7 +130,3 @@
 	path = Outsource-Argentina/odoo-mod-stock-barcode-fix
 	url = git@github.com:Outsource-Argentina/odoo-mod-stock-barcode-fix.git
 	branch = 18-Cendis
-[submodule "CD-custom"]
-	path = CD-custom
-	url = git@github.com:LautaChoque/CD-custom.git
-	branch = main
