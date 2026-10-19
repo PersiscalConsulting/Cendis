@@ -135,3 +135,8 @@
 	path = cd-custom/CD-custom
 	url = git@github.com:LautaChoque/CD-custom.git
 	branch = main
+
+[submodule "cd-custom/custom_dashboard_operaciones"]
+	path = cd-custom/custom_dashboard_operaciones
+	url = git@github.com:LautaChoque/custom_dashboard_operaciones.git
+	branch = main
