@@ -135,3 +135,8 @@
 	path = cd-custom/CD-custom
 	url = git@github.com:LautaChoque/CD-custom.git
 	branch = main
+
+[submodule "cd-custom/custom_stock_prep_upgrade"]
+	path = cd-custom/custom_stock_prep_upgrade
+	url = git@github.com:LautaChoque/custom_stock_prep_upgrade.git
+	branch = main
