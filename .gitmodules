@@ -140,3 +140,8 @@
 	path = cd-custom/custom_stock_prep_upgrade
 	url = git@github.com:LautaChoque/custom_stock_prep_upgrade.git
 	branch = main
+
+[submodule "cd-custom/custom_dashboard_operaciones"]
+	path = cd-custom/custom_dashboard_operaciones
+	url = git@github.com:LautaChoque/custom_dashboard_operaciones.git
+	branch = main
