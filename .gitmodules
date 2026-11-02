@@ -150,3 +150,8 @@
 	path = cd-custom/custom_stock_fix_upgrades
 	url = git@github.com:LautaChoque/custom_stock_fix_upgrades.git
 	branch = main
+
+[submodule "cd-custom/custom_stock_pallet_direct"]
+	path = cd-custom/custom_stock_pallet_direct
+	url = git@github.com:LautaChoque/custom_stock_pallet_direct.git
+	branch = main
